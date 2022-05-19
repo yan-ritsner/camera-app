@@ -10,7 +10,10 @@ import _isEqual from 'lodash/isEqual'
 import {
   CAMERA_ASPECT_RATIO,
   CAMERA_ERROR_MESSAGES,
-  CAMERA_FACING_MODE
+  CAMERA_FACING_MODE,
+  CAMERA_IDEAL_WIDTH,
+  CAMERA_IDEAL_HEIGHT,
+  CAMERA_DEFAULT_FORMAT,
 } from './Camera.constants'
 import {
   initCameraStream,
@@ -23,6 +26,9 @@ export const Camera = React.forwardRef((props, ref) => {
   const {
     facingMode = CAMERA_FACING_MODE.USER,
     aspectRatio = CAMERA_ASPECT_RATIO.COVER,
+    idealWidth = CAMERA_IDEAL_WIDTH,
+    idealHeight = CAMERA_IDEAL_HEIGHT,
+    format = CAMERA_DEFAULT_FORMAT,
     numberOfCamerasCallback = () => null,
   } = props
 
@@ -50,7 +56,12 @@ export const Camera = React.forwardRef((props, ref) => {
       } else if (!canvas.current) {
         throw new Error(CAMERA_ERROR_MESSAGES.CANVAS_NOT_SUPPORTED)
       }
-      return handleTakePhoto(player.current, container.current, canvas.current)
+      return handleTakePhoto(
+        player.current, 
+        container.current, 
+        canvas.current,
+        format,
+      )
     },
     switchCamera: () => {
       if (numberOfCameras < 1) {
@@ -73,12 +84,14 @@ export const Camera = React.forwardRef((props, ref) => {
   useEffect(() => {
     initCameraStream({
       currentFacingMode,
+      idealWidth,
+      idealHeight,
       setStream,
       setNumberOfCameras,
       setNotSupported,
       setPermissionDenied
     })
-  }, [currentFacingMode])
+  }, [currentFacingMode, idealWidth, idealHeight])
 
   useEffect(() => {
     if (stream && player && player.current) {

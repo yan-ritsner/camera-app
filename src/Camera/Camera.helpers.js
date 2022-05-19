@@ -3,8 +3,15 @@ import _isEqual from 'lodash/isEqual'
 import _size from 'lodash/size'
 import _forEach from 'lodash/forEach'
 
+import {
+  CAMERA_DEFAULT_WIDTH,
+  CAMERA_DEFAULT_HEIGHT,
+} from './Camera.constants'
+
 export const initCameraStream = async ({
   currentFacingMode,
+  idealWidth,
+  idealHeight,
   setStream,
   setNumberOfCameras,
   setNotSupported,
@@ -15,14 +22,15 @@ export const initCameraStream = async ({
     audio: false,
     video: {
       facingMode: currentFacingMode,
-      width: { ideal: 1920 },
-      height: { ideal: 1920 },
+      width: { ideal: idealWidth },
+      height: { ideal: idealHeight },
     },
   }
 
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  const mediaDevices = navigator.mediaDevices
+  if (mediaDevices && mediaDevices.getUserMedia) {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      const stream = await mediaDevices.getUserMedia(constraints)
       handleSuccess(stream, setStream, setNumberOfCameras)
     }
     catch (err) {
@@ -61,15 +69,15 @@ export const stopCameraStream = (stream) => {
   })
 }
 
-export const handleTakePhoto = (player, container, canvas) => {
+export const handleTakePhoto = (player, container, canvas, format) => {
   if (!player || !container || !canvas) return
 
-  const playerWidth = player.videoWidth || 1280
-  const playerHeight = player.videoHeight || 720
+  const playerWidth = player.videoWidth || CAMERA_DEFAULT_WIDTH
+  const playerHeight = player.videoHeight || CAMERA_DEFAULT_HEIGHT
   const playerAR = playerWidth / playerHeight
 
-  const canvasWidth = container.offsetWidth || 1280
-  const canvasHeight = container.offsetHeight || 1280
+  const canvasWidth = container.offsetWidth || CAMERA_DEFAULT_WIDTH
+  const canvasHeight = container.offsetHeight || CAMERA_DEFAULT_HEIGHT
   const canvasAR = canvasWidth / canvasHeight
 
   let sX, sY, sW, sH
@@ -91,7 +99,7 @@ export const handleTakePhoto = (player, container, canvas) => {
 
   const context = canvas.getContext('2d')
   context.drawImage(player, sX, sY, sW, sH, 0, 0, sW, sH)
-  const imgData = canvas.toDataURL('image/jpeg')
+  const imgData = canvas.toDataURL(format)
   return imgData
 }
 
