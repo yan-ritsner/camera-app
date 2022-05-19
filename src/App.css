@@ -1,9 +1,10 @@
-.button {
-  position: 'absolute';
-  left: '50%';
-  right: '50%';
-  width: '50px';
-  height: '50px';
-  border-radius: '25px';
-  margin-left: '-25px';
+.camera-button {
+  position: absolute;
+  left: 50%;
+  right: 50%;
+  bottom: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  margin-left: -25px;
 }

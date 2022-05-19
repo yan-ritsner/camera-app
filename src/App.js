@@ -11,7 +11,7 @@ const App = () => {
     <div>
       <Camera ref={camera} />
       <button
-        className=""
+        className="camera-button"
         onClick={() => setImage(camera.current.takePhoto())}>
         Take photo
       </button>
