@@ -14,6 +14,7 @@ import {
   CAMERA_IDEAL_WIDTH,
   CAMERA_IDEAL_HEIGHT,
   CAMERA_DEFAULT_FORMAT,
+  CAMERA_DEFAULT_QUALITY
 } from './Camera.constants'
 import {
   initCameraStream,
@@ -29,6 +30,7 @@ export const Camera = React.forwardRef((props, ref) => {
     idealWidth = CAMERA_IDEAL_WIDTH,
     idealHeight = CAMERA_IDEAL_HEIGHT,
     format = CAMERA_DEFAULT_FORMAT,
+    quality = CAMERA_DEFAULT_QUALITY,
     numberOfCamerasCallback = () => null,
   } = props
 
@@ -56,12 +58,13 @@ export const Camera = React.forwardRef((props, ref) => {
       } else if (!canvas.current) {
         throw new Error(CAMERA_ERROR_MESSAGES.CANVAS_NOT_SUPPORTED)
       }
-      return handleTakePhoto(
-        player.current, 
-        container.current, 
-        canvas.current,
+      return handleTakePhoto({
+        player: player.current, 
+        container: container.current, 
+        canvas: canvas.current,
         format,
-      )
+        quality,
+      })
     },
     switchCamera: () => {
       if (numberOfCameras < 1) {

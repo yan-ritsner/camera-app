@@ -19,3 +19,4 @@ export const CAMERA_IDEAL_HEIGHT = 2160
 export const CAMERA_DEFAULT_WIDTH = 1280
 export const CAMERA_DEFAULT_HEIGHT = 720
 export const CAMERA_DEFAULT_FORMAT = 'image/jpeg'
+export const CAMERA_DEFAULT_QUALITY = 1

@@ -69,7 +69,13 @@ export const stopCameraStream = (stream) => {
   })
 }
 
-export const handleTakePhoto = (player, container, canvas, format) => {
+export const handleTakePhoto = ({
+    player, 
+    container, 
+    canvas, 
+    format, 
+    quality
+  }) => {
   if (!player || !container || !canvas) return
 
   const playerWidth = player.videoWidth || CAMERA_DEFAULT_WIDTH
@@ -99,7 +105,7 @@ export const handleTakePhoto = (player, container, canvas, format) => {
 
   const context = canvas.getContext('2d')
   context.drawImage(player, sX, sY, sW, sH, 0, 0, sW, sH)
-  const imgData = canvas.toDataURL(format)
+  const imgData = canvas.toDataURL(format, quality)
   return imgData
 }
 
