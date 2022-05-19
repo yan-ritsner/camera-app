@@ -11,8 +11,8 @@ import {
   CAMERA_ASPECT_RATIO,
   CAMERA_ERROR_MESSAGES,
   CAMERA_FACING_MODE,
-  CAMERA_IDEAL_WIDTH,
-  CAMERA_IDEAL_HEIGHT,
+  CAMERA_DEFAULT_WIDTH,
+  CAMERA_DEFAULT_HEIGHT,
   CAMERA_DEFAULT_FORMAT,
   CAMERA_DEFAULT_QUALITY
 } from './Camera.constants'
@@ -27,8 +27,8 @@ export const Camera = React.forwardRef((props, ref) => {
   const {
     facingMode = CAMERA_FACING_MODE.USER,
     aspectRatio = CAMERA_ASPECT_RATIO.COVER,
-    idealWidth = CAMERA_IDEAL_WIDTH,
-    idealHeight = CAMERA_IDEAL_HEIGHT,
+    width = CAMERA_DEFAULT_WIDTH,
+    height = CAMERA_DEFAULT_HEIGHT,
     format = CAMERA_DEFAULT_FORMAT,
     quality = CAMERA_DEFAULT_QUALITY,
     numberOfCamerasCallback = () => null,
@@ -59,8 +59,8 @@ export const Camera = React.forwardRef((props, ref) => {
         throw new Error(CAMERA_ERROR_MESSAGES.CANVAS_NOT_SUPPORTED)
       }
       return handleTakePhoto({
-        player: player.current, 
-        container: container.current, 
+        player: player.current,
+        container: container.current,
         canvas: canvas.current,
         format,
         quality,
@@ -87,14 +87,14 @@ export const Camera = React.forwardRef((props, ref) => {
   useEffect(() => {
     initCameraStream({
       currentFacingMode,
-      idealWidth,
-      idealHeight,
+      width,
+      height,
       setStream,
       setNumberOfCameras,
       setNotSupported,
       setPermissionDenied
     })
-  }, [currentFacingMode, idealWidth, idealHeight])
+  }, [currentFacingMode, width, height])
 
   useEffect(() => {
     if (stream && player && player.current) {

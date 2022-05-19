@@ -10,8 +10,8 @@ import {
 
 export const initCameraStream = async ({
   currentFacingMode,
-  idealWidth,
-  idealHeight,
+  width,
+  height,
   setStream,
   setNumberOfCameras,
   setNotSupported,
@@ -22,8 +22,8 @@ export const initCameraStream = async ({
     audio: false,
     video: {
       facingMode: currentFacingMode,
-      width: { ideal: idealWidth },
-      height: { ideal: idealHeight },
+      width: { ideal: width },
+      height: { ideal: height },
     },
   }
 
@@ -31,6 +31,7 @@ export const initCameraStream = async ({
   if (mediaDevices && mediaDevices.getUserMedia) {
     try {
       const stream = await mediaDevices.getUserMedia(constraints)
+      checkConstraints(stream)
       handleSuccess(stream, setStream, setNumberOfCameras)
     }
     catch (err) {
@@ -70,12 +71,12 @@ export const stopCameraStream = (stream) => {
 }
 
 export const handleTakePhoto = ({
-    player, 
-    container, 
-    canvas, 
-    format, 
-    quality
-  }) => {
+  player,
+  container,
+  canvas,
+  format,
+  quality
+}) => {
   if (!player || !container || !canvas) return
 
   const playerWidth = player.videoWidth || CAMERA_DEFAULT_WIDTH
@@ -126,4 +127,18 @@ const handleError = (error, setNotSupported, setPermissionDenied) => {
   } else {
     setNotSupported(true)
   }
+}
+
+const checkConstraints = (stream) => {
+  if (!stream) return
+
+  const tracks = stream.getTracks()
+  _forEach(tracks, track => {
+    const capabilities = track.getCapabilities()
+    const constraints = track.getConstraints()
+    console.log('capabilities:')
+    console.log(capabilities)
+    console.log('constraints:')
+    console.log(constraints)
+  })
 }
