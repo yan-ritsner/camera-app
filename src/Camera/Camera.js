@@ -50,7 +50,7 @@ export const Camera = React.forwardRef((props, ref) => {
       } else if (!canvas.current) {
         throw new Error(CAMERA_ERROR_MESSAGES.CANVAS_NOT_SUPPORTED)
       }
-      handleTakePhoto(player.current, container.current, canvas.current)
+      return handleTakePhoto(player.current, container.current, canvas.current)
     },
     switchCamera: () => {
       if (numberOfCameras < 1) {
