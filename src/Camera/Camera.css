@@ -1,0 +1,38 @@
+.camera-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.camera-container {
+    position: relative;
+}
+
+.camera-container-cover {
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.camera-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+.camera-video-mirrored {
+    transform: rotateY(180deg);
+}
+
+.camera-canvas {
+    display: none;
+}
+
+.camera-error {
+    padding: 40px;
+}
