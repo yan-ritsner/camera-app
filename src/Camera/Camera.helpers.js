@@ -2,6 +2,7 @@ import _filter from 'lodash/filter'
 import _isEqual from 'lodash/isEqual'
 import _size from 'lodash/size'
 import _forEach from 'lodash/forEach'
+import _first from 'lodash/first'
 
 import {
   CAMERA_DEFAULT_WIDTH,
@@ -31,7 +32,6 @@ export const initCameraStream = async ({
   if (mediaDevices && mediaDevices.getUserMedia) {
     try {
       const stream = await mediaDevices.getUserMedia(constraints)
-      checkConstraints(stream)
       handleSuccess(stream, setStream, setNumberOfCameras)
     }
     catch (err) {
@@ -110,6 +110,21 @@ export const handleTakePhoto = ({
   return imgData
 }
 
+export const getCameraFeatures = (stream) => {
+  if (!stream) return
+  const tracks = stream.getTracks()
+  const track = _first(tracks)
+  if(!track) return
+
+  const capabilities = track.getCapabilities()
+  const constraints = track.getConstraints()
+
+  console.log('capabilities:')
+  console.log(capabilities)
+  console.log('constraints:')
+  console.log(constraints)
+}
+
 const handleSuccess = async (stream, setStream, setNumberOfCameras) => {
   const allDevices = await navigator.mediaDevices.enumerateDevices()
   const videoDevices = _filter(allDevices, device => _isEqual(device.kind, 'videoinput'))
@@ -127,18 +142,4 @@ const handleError = (error, setNotSupported, setPermissionDenied) => {
   } else {
     setNotSupported(true)
   }
-}
-
-const checkConstraints = (stream) => {
-  if (!stream) return
-
-  const tracks = stream.getTracks()
-  _forEach(tracks, track => {
-    const capabilities = track.getCapabilities()
-    const constraints = track.getConstraints()
-    console.log('capabilities:')
-    console.log(capabilities)
-    console.log('constraints:')
-    console.log(constraints)
-  })
 }
