@@ -86,10 +86,19 @@
   padding: 40px;
 }
 
+.camera-full-screen-button {
+  background: url(https://img.icons8.com/ios/50/000000/full-screen.png);
+  background-position: center;
+  background-size: 40px;
+  background-repeat: no-repeat;
+  width: 40px;
+  height: 40px;
+  padding: 40px;
+}
+
 .camera-change-facing-button:disabled {
   opacity: 0;
   cursor: default;
-  padding: 60px;
 }
 
 @media (max-width: 400px) {
@@ -102,8 +111,8 @@
 }
 
 .camera-image-preview {
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -112,7 +121,7 @@
 @media (max-width: 400px) {
   .camera-image-preview {
     width: 50px;
-    height: 120px;
+    height: 100px;
   }
 }
 

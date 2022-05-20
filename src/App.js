@@ -29,6 +29,15 @@ const App = () => {
       console.log(result)
     }
   },[])
+  const toggleFullScreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  }, [])
 
   return (
     <div className='camera-component'>
@@ -50,6 +59,10 @@ const App = () => {
           className='camera-image-preview'
           style={{backgroundImage}}
           onClick={toggleImage}
+        />
+        <button 
+          className={'camera-button camera-full-screen-button'}
+          onClick={toggleFullScreen}
         />
         <button
           className={'camera-button camera-take-photo-button'}
