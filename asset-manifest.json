@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/static/css/main.3d90dd69.css",
-    "main.js": "/static/js/main.53446373.js",
-    "static/js/787.9856bf8f.chunk.js": "/static/js/787.9856bf8f.chunk.js",
-    "index.html": "/index.html",
-    "main.3d90dd69.css.map": "/static/css/main.3d90dd69.css.map",
-    "main.53446373.js.map": "/static/js/main.53446373.js.map",
-    "787.9856bf8f.chunk.js.map": "/static/js/787.9856bf8f.chunk.js.map"
+    "main.css": "/camera-app/static/css/main.3d90dd69.css",
+    "main.js": "/camera-app/static/js/main.3c8e61ae.js",
+    "static/js/787.9856bf8f.chunk.js": "/camera-app/static/js/787.9856bf8f.chunk.js",
+    "index.html": "/camera-app/index.html",
+    "main.3d90dd69.css.map": "/camera-app/static/css/main.3d90dd69.css.map",
+    "main.3c8e61ae.js.map": "/camera-app/static/js/main.3c8e61ae.js.map",
+    "787.9856bf8f.chunk.js.map": "/camera-app/static/js/787.9856bf8f.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.3d90dd69.css",
-    "static/js/main.53446373.js"
+    "static/js/main.3c8e61ae.js"
   ]
 }
