@@ -31,7 +31,7 @@ export const initCameraStream = async ({
   if (mediaDevices && mediaDevices.getUserMedia) {
     try {
       const stream = await mediaDevices.getUserMedia(constraints)
-      getCameraFeatures(stream)
+      setCameraSettings(stream)
       handleSuccess(stream, setStream, setNumberOfCameras)
     }
     catch (err) {
@@ -110,17 +110,17 @@ export const handleTakePhoto = ({
   return imgData
 }
 
-export const getCameraFeatures = (stream) => {
+export const setCameraSettings = (stream) => {
   if (!stream) return
   const [track] = stream.getTracks()
   if (!track) return
 
-  track.applyConstraints({
-    advanced: [{
-      focusMode: "manual",
-      focusDistance: 0.3,
-    }]
-  });
+  // track.applyConstraints({
+  //   advanced: [{
+  //     focusMode: "manual",
+  //     focusDistance: 0.1,
+  //   }]
+  // });
 
   const capabilities = track.getCapabilities()
   const constraints = track.getConstraints()
