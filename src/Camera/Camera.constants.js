@@ -16,5 +16,6 @@ export const CAMERA_ERROR_MESSAGES = {
 
 export const CAMERA_DEFAULT_WIDTH = 1920
 export const CAMERA_DEFAULT_HEIGHT = 1080
+
 export const CAMERA_DEFAULT_FORMAT = 'image/jpeg'
 export const CAMERA_DEFAULT_QUALITY = 1
