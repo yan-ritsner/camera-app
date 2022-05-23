@@ -113,7 +113,14 @@ export const handleTakePhoto = ({
 export const getCameraFeatures = (stream) => {
   if (!stream) return
   const [track] = stream.getTracks()
-  if(!track) return
+  if (!track) return
+
+  track.applyConstraints({
+    advanced: [{
+      focusMode: "manual",
+      focusDistance: 0.3,
+    }]
+  });
 
   const capabilities = track.getCapabilities()
   const constraints = track.getConstraints()
