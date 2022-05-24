@@ -144,6 +144,7 @@ export const Camera = React.forwardRef((props, ref) => {
           playsInline={true}
         />
         <canvas
+          id='canvas'
           ref={canvas}
           className='camera-canvas'
         />
