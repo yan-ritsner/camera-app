@@ -3,6 +3,11 @@ export const CAMERA_FACING_MODE = {
   ENVIRONMENT: 'environment',
 }
 
+export const CAMERA_FOCUS_MODE ={
+  MANUAL: 'manual',
+  CONTINUOUS: 'continuous',
+}
+
 export const CAMERA_ASPECT_RATIO = {
   COVER: 'cover'
 }
@@ -14,8 +19,14 @@ export const CAMERA_ERROR_MESSAGES = {
   CANVAS_NOT_SUPPORTED: 'Canvas is not supported.'
 }
 
+export const CAMERA_FILTERS = {
+  NONE: 'none',
+  SHARPER: 'sharpen'
+}
+
 export const CAMERA_DEFAULT_WIDTH = 1920
 export const CAMERA_DEFAULT_HEIGHT = 1080
 
 export const CAMERA_DEFAULT_FORMAT = 'image/jpeg'
 export const CAMERA_DEFAULT_QUALITY = 1
+

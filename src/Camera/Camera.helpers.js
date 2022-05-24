@@ -6,9 +6,8 @@ import _forEach from 'lodash/forEach'
 import {
   CAMERA_DEFAULT_WIDTH,
   CAMERA_DEFAULT_HEIGHT,
+  CAMERA_FILTERS,
 } from './Camera.constants'
-
-const cv = require('opencv.js')
 
 export const initCameraStream = async ({
   currentFacingMode,
@@ -33,7 +32,6 @@ export const initCameraStream = async ({
   if (mediaDevices && mediaDevices.getUserMedia) {
     try {
       const stream = await mediaDevices.getUserMedia(constraints)
-      applyCameraSettings(stream)
       handleSuccess(stream, setStream, setNumberOfCameras)
     }
     catch (err) {
@@ -72,12 +70,13 @@ export const stopCameraStream = (stream) => {
   })
 }
 
-export const handleTakePhoto = ({
+export const takeCameraPhoto = ({
   player,
   container,
   canvas,
   format,
-  quality
+  quality,
+  filter,
 }) => {
   if (!player || !container || !canvas) return
 
@@ -108,38 +107,39 @@ export const handleTakePhoto = ({
 
   const context = canvas.getContext('2d')
   context.drawImage(player, sX, sY, sW, sH, 0, 0, sW, sH)
-  // applyImageFilters(context, sX, sY, sW, sH)
-  const imgData = canvas.toDataURL(format, quality)
-  return imgData
+
+  if (filter && !_isEqual(filter, CAMERA_FILTERS.NONE)) {
+    const sourceImageData = context.getImageData(0, 0, sW, sH)
+    const blankOutputImageData = context.createImageData(sW, sH)
+    const outputImageData = applyCameraFilter(sourceImageData, blankOutputImageData, filter)
+    context.putImageData(outputImageData, 0, 0)
+  }
+
+  const imgDataUrl = canvas.toDataURL(format, quality)
+  return imgDataUrl
 }
 
-const applyImageFilters = (context, sX, sY, sW, sH) => {
-  const imageData = context.getImageData(sX, sY, sW, sH)
-  const imageSrc = cv.matFromImageData(imageData)
-  const kdata = [-1, -1, -1, -1, 9, -1, -1, -1, -1]
-  const m = cv.matFromArray(3, 3, cv.CV_32FC1, kdata)
-  const anchor = new cv.Point(-1, -1)
-  const imageDst = new cv.Mat()
-  cv.filter2D(imageSrc, imageDst, cv.CV_8U, m, anchor, 0, cv.BORDER_DEFAULT)
-  cv.imshow('canvas', imageDst)
-}
-
-const applyCameraSettings = (stream) => {
+export const setCameraFocus = (stream, focusMode, focusDistance) => {
   if (!stream) return
   const [track] = stream.getTracks()
   if (!track) return
 
-  // track.applyConstraints({
-  //   advanced: [{
-  //     focusMode: "manual",
-  //     focusDistance: 0.1,
-  //   }]
-  // });
+  track.applyConstraints({
+    advanced: [{
+      focusMode,
+      focusDistance,
+    }]
+  })
+}
+
+export const printCameraSettings = (stream) =>{
+  if (!stream) return
+  const [track] = stream.getTracks()
+  if (!track) return
 
   const capabilities = track.getCapabilities()
   const constraints = track.getConstraints()
   const settings = track.getSettings()
-
 
   console.log('capabilities:')
   console.log(capabilities)
@@ -147,6 +147,83 @@ const applyCameraSettings = (stream) => {
   console.log(constraints)
   console.log('settings:')
   console.log(settings)
+}
+
+export const applyCameraFilter = (
+  sourceImageData, 
+  outputImageData, 
+  filter
+) => {
+  switch(filter){
+    case CAMERA_FILTERS.SHARPER:{
+      const filterData = [
+        0, -1, 0, 
+        -1, 5, -1,
+         0, -1,  0
+      ]
+      return applyConvolution(sourceImageData, outputImageData, filterData)
+    }
+    default:
+      return sourceImageData
+  }
+}
+
+export const applyConvolution = (
+  sourceImageData, 
+  outputImageData,
+  kernel
+) => {
+
+  const {
+    data: src, 
+    width: srcWidth, 
+    height: srcHeight
+  } = sourceImageData
+
+  const {
+    data: dst,
+  } = outputImageData
+  
+  const side = Math.round(Math.sqrt(_size(kernel)))
+  const halfSide = Math.floor(side/2)
+  
+  // padding the output by the convolution kernel
+  const w = srcWidth
+  const h = srcHeight
+  
+  // iterating through the output image pixels
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {      
+      let r = 0, g = 0, b = 0, a = 0
+      
+      // calculating the weighed sum of the source image pixels that
+      // fall under the convolution kernel
+      for (let cy = 0; cy < side; cy++) {
+        for (let cx = 0; cx < side; cx++) {
+          const scy = y + cy - halfSide
+          const scx = x + cx - halfSide
+          
+          if (scy >= 0 && scy < srcHeight && scx >= 0 && scx < srcWidth) {
+            let srcOffset = (scy*srcWidth+scx) * 4
+            let wt = kernel[cy*side+cx]
+            r += src[srcOffset] * wt
+            g += src[srcOffset+1] * wt
+            b += src[srcOffset+2] * wt
+            a += src[srcOffset+3] * wt
+          }
+        }
+      }
+      
+      const dstOffset = (y*w+x)*4
+      
+      dst[dstOffset] = r
+      dst[dstOffset+1] = g
+      dst[dstOffset+2] = b
+      dst[dstOffset+3] = a
+    }
+  }
+  
+  return outputImageData
 }
 
 const handleSuccess = async (stream, setStream, setNumberOfCameras) => {
