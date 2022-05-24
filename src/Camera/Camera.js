@@ -21,6 +21,8 @@ import {
   initCameraStream,
   stopCameraStream,
   takeCameraPhoto,
+  getCameraCapabilities,
+  setCameraConstraints,
 } from './Camera.helpers'
 import './Camera.css'
 
@@ -85,6 +87,12 @@ export const Camera = React.forwardRef((props, ref) => {
     getNumberOfCameras: () => {
       return numberOfCameras
     },
+    getCameraCapabilities: () => {
+      return getCameraCapabilities(stream)
+    },
+    setCameraConstraints: (constraints) => {
+      setCameraConstraints(stream, constraints)
+    }
   }))
 
   useEffect(() => {

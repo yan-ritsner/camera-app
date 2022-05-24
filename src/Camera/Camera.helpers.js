@@ -32,6 +32,7 @@ export const initCameraStream = async ({
   if (mediaDevices && mediaDevices.getUserMedia) {
     try {
       const stream = await mediaDevices.getUserMedia(constraints)
+      printCameraSettings(stream)
       handleSuccess(stream, setStream, setNumberOfCameras)
     }
     catch (err) {
@@ -50,6 +51,7 @@ export const initCameraStream = async ({
     getUserMedia(
       constraints,
       stream => {
+        printCameraSettings(stream)
         handleSuccess(stream, setStream, setNumberOfCameras)
       },
       err => {
@@ -119,22 +121,29 @@ export const takeCameraPhoto = ({
   return imgDataUrl
 }
 
-export const setCameraFocus = (stream, focusMode, focusDistance) => {
+export const getCameraTrack = (stream) =>{
   if (!stream) return
   const [track] = stream.getTracks()
+  return track
+}
+
+export const getCameraCapabilities = (stream) =>{
+  const track = getCameraTrack(stream)
   if (!track) return
 
-  track.applyConstraints({
-    advanced: [{
-      focusMode,
-      focusDistance,
-    }]
-  })
+  const capabilities = track.getCapabilities()
+  return capabilities
+}
+
+export const setCameraConstraints = (stream, constraints) => {
+  const track = getCameraTrack(stream)
+  if (!track) return
+
+  track.applyConstraints(constraints)
 }
 
 export const printCameraSettings = (stream) =>{
-  if (!stream) return
-  const [track] = stream.getTracks()
+  const track = getCameraTrack(stream)
   if (!track) return
 
   const capabilities = track.getCapabilities()
@@ -168,7 +177,7 @@ export const applyCameraFilter = (
   }
 }
 
-export const applyConvolution = (
+const applyConvolution = (
   sourceImageData, 
   outputImageData,
   kernel
