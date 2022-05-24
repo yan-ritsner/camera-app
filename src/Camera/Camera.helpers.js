@@ -8,6 +8,8 @@ import {
   CAMERA_DEFAULT_HEIGHT,
 } from './Camera.constants'
 
+const cv = require('opencv.js')
+
 export const initCameraStream = async ({
   currentFacingMode,
   width,
@@ -31,7 +33,7 @@ export const initCameraStream = async ({
   if (mediaDevices && mediaDevices.getUserMedia) {
     try {
       const stream = await mediaDevices.getUserMedia(constraints)
-      setCameraSettings(stream)
+      applyCameraSettings(stream)
       handleSuccess(stream, setStream, setNumberOfCameras)
     }
     catch (err) {
@@ -106,11 +108,23 @@ export const handleTakePhoto = ({
 
   const context = canvas.getContext('2d')
   context.drawImage(player, sX, sY, sW, sH, 0, 0, sW, sH)
+  // applyImageFilters(context, sX, sY, sW, sH)
   const imgData = canvas.toDataURL(format, quality)
   return imgData
 }
 
-export const setCameraSettings = (stream) => {
+const applyImageFilters = (context, sX, sY, sW, sH) => {
+  const imageData = context.getImageData(sX, sY, sW, sH)
+  const imageSrc = cv.matFromImageData(imageData)
+  const kdata = [-1, -1, -1, -1, 9, -1, -1, -1, -1]
+  const m = cv.matFromArray(3, 3, cv.CV_32FC1, kdata)
+  const anchor = new cv.Point(-1, -1)
+  const imageDst = new cv.Mat()
+  cv.filter2D(imageSrc, imageDst, cv.CV_8U, m, anchor, 0, cv.BORDER_DEFAULT)
+  cv.imshow('canvas', imageDst)
+}
+
+const applyCameraSettings = (stream) => {
   if (!stream) return
   const [track] = stream.getTracks()
   if (!track) return
