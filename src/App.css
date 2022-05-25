@@ -109,8 +109,15 @@
 
 }
 
+.camera-settings > div {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  color: white;
+  display: flex;
+  flex-direction: row;
+}
 .camera-settings label {
-  margin-left: 10px;
+  margin-right: 10px;
   color: white;
 }
 

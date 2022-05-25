@@ -17,6 +17,7 @@ export const initCameraStream = async ({
   setNumberOfCameras,
   setNotSupported,
   setPermissionDenied,
+  setCameraCapabilities,
 }) => {
 
   const constraints = {
@@ -32,8 +33,7 @@ export const initCameraStream = async ({
   if (mediaDevices && mediaDevices.getUserMedia) {
     try {
       const stream = await mediaDevices.getUserMedia(constraints)
-      printCameraSettings(stream)
-      handleSuccess(stream, setStream, setNumberOfCameras)
+      handleSuccess(stream, setStream, setNumberOfCameras, setCameraCapabilities)
     }
     catch (err) {
       handleError(err, setNotSupported, setPermissionDenied)
@@ -51,8 +51,7 @@ export const initCameraStream = async ({
     getUserMedia(
       constraints,
       stream => {
-        printCameraSettings(stream)
-        handleSuccess(stream, setStream, setNumberOfCameras)
+        handleSuccess(stream, setStream, setNumberOfCameras, setCameraCapabilities)
       },
       err => {
         handleError(err, setNotSupported, setPermissionDenied)
@@ -135,11 +134,12 @@ export const getCameraCapabilities = (stream) =>{
   return capabilities
 }
 
-export const setCameraConstraints = (stream, constraints) => {
+export const setCameraSettings = (stream, settings) => {
   const track = getCameraTrack(stream)
   if (!track) return
 
-  track.applyConstraints(constraints)
+  track.applyConstraints(settings)
+  printCameraSettings(stream)
 }
 
 export const printCameraSettings = (stream) =>{
@@ -164,7 +164,7 @@ export const applyCameraFilter = (
   filter
 ) => {
   switch(filter){
-    case CAMERA_FILTERS.SHARPER:{
+    case CAMERA_FILTERS.SHARPEN:{
       const filterData = [
         0, -1, 0, 
         -1, 5, -1,
@@ -235,11 +235,14 @@ const applyConvolution = (
   return outputImageData
 }
 
-const handleSuccess = async (stream, setStream, setNumberOfCameras) => {
+const handleSuccess = async (stream, setStream, setNumberOfCameras, setCameraCapabilities) => {
   const allDevices = await navigator.mediaDevices.enumerateDevices()
   const videoDevices = _filter(allDevices, device => _isEqual(device.kind, 'videoinput'))
+  const capabilities = getCameraCapabilities(stream)
 
+  printCameraSettings(stream)
   setNumberOfCameras(_size(videoDevices))
+  setCameraCapabilities(capabilities)
   setStream(stream)
 }
 

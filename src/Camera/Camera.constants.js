@@ -21,7 +21,7 @@ export const CAMERA_ERROR_MESSAGES = {
 
 export const CAMERA_FILTERS = {
   NONE: 'none',
-  SHARPER: 'sharpen'
+  SHARPEN: 'sharpen'
 }
 
 export const CAMERA_DEFAULT_WIDTH = 1920

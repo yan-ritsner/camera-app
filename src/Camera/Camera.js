@@ -21,8 +21,7 @@ import {
   initCameraStream,
   stopCameraStream,
   takeCameraPhoto,
-  getCameraCapabilities,
-  setCameraConstraints,
+  setCameraSettings,
 } from './Camera.helpers'
 import './Camera.css'
 
@@ -35,7 +34,8 @@ export const Camera = React.forwardRef((props, ref) => {
     format = CAMERA_DEFAULT_FORMAT,
     quality = CAMERA_DEFAULT_QUALITY,
     filter = CAMERA_FILTERS.SHARPER,
-    numberOfCamerasCallback = () => null,
+    numberOfCamerasCallback = () => 0,
+    cameraCapabilitiesCallback = ()=> ({})
   } = props
 
   const player = useRef(null)
@@ -43,6 +43,7 @@ export const Camera = React.forwardRef((props, ref) => {
   const container = useRef(null)
 
   const [numberOfCameras, setNumberOfCameras] = useState(0)
+  const [cameraCapabilities, setCameraCapabilities] = useState({})
   const [stream, setStream] = useState(null)
   const [currentFacingMode, setFacingMode] = useState(facingMode)
   const [notSupported, setNotSupported] = useState(false)
@@ -54,6 +55,10 @@ export const Camera = React.forwardRef((props, ref) => {
   useEffect(() => {
     numberOfCamerasCallback(numberOfCameras)
   }, [numberOfCameras, numberOfCamerasCallback])
+
+  useEffect(() => {
+    cameraCapabilitiesCallback(cameraCapabilities)
+  }, [cameraCapabilities, cameraCapabilitiesCallback])
 
   useImperativeHandle(ref, () => ({
     takePhoto: () => {
@@ -88,10 +93,10 @@ export const Camera = React.forwardRef((props, ref) => {
       return numberOfCameras
     },
     getCameraCapabilities: () => {
-      return getCameraCapabilities(stream)
+      return cameraCapabilities
     },
-    setCameraConstraints: (constraints) => {
-      setCameraConstraints(stream, constraints)
+    setCameraSettings: (settings) => {
+      setCameraSettings(stream, settings)
     }
   }))
 
@@ -103,7 +108,8 @@ export const Camera = React.forwardRef((props, ref) => {
       setStream,
       setNumberOfCameras,
       setNotSupported,
-      setPermissionDenied
+      setPermissionDenied,
+      setCameraCapabilities,
     })
   }, [currentFacingMode, width, height])
 
