@@ -18,6 +18,7 @@ const App = () => {
   const [applyFilter, setApplyFilter] = useState(true)
   const [manualFocus, setManualFocus] = useState(false)
   const [focusDistance, setFocusDistance] = useState(0)
+  const [fullScreen, setFullScreen] = useState(false)
   const [cameraCapabilities, setCameraCapabilities] = useState()
   const camera = useRef(null)
 
@@ -58,6 +59,16 @@ const App = () => {
   }, [])
   const toggleManualFocus = useCallback(()=>{
     setManualFocus((value) => !value)
+  }, [])
+  const toggleFullScreen = useCallback(() => {
+    setFullScreen((value) => !value)
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
   }, [])
 
   const takePhoto = useCallback(()=> {
@@ -130,6 +141,18 @@ const App = () => {
             />
           </div>
           <div>
+            <label htmlFor="fullScreen">
+              Full Screen
+            </label>
+            <input 
+              type="checkbox" 
+              id="fullScreen" 
+              name="fullScreen" 
+              checked={fullScreen} 
+              onChange={toggleFullScreen}
+            />
+          </div>
+          <div>
             <label htmlFor="manualFocus">
               Manual Focus
             </label>
@@ -157,6 +180,7 @@ const App = () => {
             />
           </div>
           <div>{focusDistance}</div>
+
         </div>
       )}
     </div>
