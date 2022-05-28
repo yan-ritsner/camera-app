@@ -24,6 +24,8 @@ import {
   setCameraSettings,
 } from './Camera.helpers'
 import './Camera.css'
+import CameraOverlay from './Camera.Overlay'
+import { useElementSize } from './Camera.hooks'
 
 export const Camera = React.forwardRef((props, ref) => {
   const {
@@ -35,7 +37,7 @@ export const Camera = React.forwardRef((props, ref) => {
     quality = CAMERA_DEFAULT_QUALITY,
     filter = CAMERA_FILTERS.SHARPER,
     numberOfCamerasCallback = () => 0,
-    cameraCapabilitiesCallback = ()=> ({})
+    cameraCapabilitiesCallback = () => ({})
   } = props
 
   const player = useRef(null)
@@ -141,6 +143,11 @@ export const Camera = React.forwardRef((props, ref) => {
     { 'camera-video-mirrored': isUserFacing }
   )
 
+  const {
+    width: containerWidth,
+    height: containerHeight
+  } = useElementSize(container)
+
   return (
     <div
       ref={container}
@@ -164,6 +171,12 @@ export const Camera = React.forwardRef((props, ref) => {
           id='canvas'
           ref={canvas}
           className='camera-canvas'
+        />
+        <CameraOverlay
+          width={containerWidth}
+          height={containerHeight}
+          shapeHMargin={20}
+          shapeVMargin={100}
         />
       </div>
     </div>

@@ -83,7 +83,7 @@
 }
 
 .camera-settings-button {
-  background: url(https://img.icons8.com/ios/50/ffffff/settings.png);
+  background: url(https://img.icons8.com/ios/50/000000/settings.png);
   background-position: center;
   background-size: 40px;
   background-repeat: no-repeat;
@@ -103,7 +103,7 @@
   left: 10px;
   right: 20%;
   border-radius: 10px;
-  background: rgba(0, 0, 0, 0.5);
+  background: #000000;
   z-index: 10;
   padding: 10px;
 
