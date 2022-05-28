@@ -15,7 +15,8 @@ import {
   CAMERA_DEFAULT_HEIGHT,
   CAMERA_DEFAULT_FORMAT,
   CAMERA_DEFAULT_QUALITY,
-  CAMERA_FILTERS
+  CAMERA_FILTERS,
+  CAMERA_OVERLAY_SHAPE
 } from './Camera.constants'
 import {
   initCameraStream,
@@ -73,6 +74,7 @@ export const Camera = React.forwardRef((props, ref) => {
         player: player.current,
         container: container.current,
         canvas: canvas.current,
+        mirorred: isUserFacing,
         format,
         quality,
         filter,
@@ -170,11 +172,12 @@ export const Camera = React.forwardRef((props, ref) => {
         <canvas
           id='canvas'
           ref={canvas}
-          className='camera-canvas'
+          className={'camera-canvas'}
         />
         <CameraOverlay
           width={containerWidth}
           height={containerHeight}
+          shapeType={CAMERA_OVERLAY_SHAPE.CIRCLE}
           shapeHMargin={20}
           shapeVMargin={100}
         />

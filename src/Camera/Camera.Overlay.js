@@ -1,24 +1,55 @@
 import React from 'react'
+import { CAMERA_OVERLAY_SHAPE } from './Camera.constants'
 
 const CameraOverlay = ({
   width,
   height,
   shapeType,
   shapeRadius,
-  shapeHMargin,
-  shapeVMargin,
   shapeWidth,
   shapeHeight,
+  shapeRatio,
+  shapeHMargin,
+  shapeVMargin,
 }) => {
-  const circleR = shapeRadius
-    ? shapeRadius
-    : Math.max(Math.min(width, height) / 2 - shapeHMargin, 0)
-  const circleX = '50%'
-  let circleY = circleR + shapeVMargin
-  const circleOverflow = circleY + circleR - height
-  if (circleOverflow > 0) {
-    circleY = circleY - circleOverflow - shapeHMargin
+
+  let shapeMask = null
+  let shapeBorder = null
+  switch (shapeType) {
+    case CAMERA_OVERLAY_SHAPE.CIRCLE: {
+      const circleR = shapeRadius
+        ? shapeRadius
+        : Math.max(Math.min(width, height) / 2 - shapeHMargin, 0)
+      const circleX = '50%'
+      let circleY = circleR + shapeVMargin
+      const circleOverflow = circleY + circleR - height
+      if (circleOverflow > 0) {
+        circleY = circleY - circleOverflow - shapeHMargin
+      }
+      shapeMask = (
+        <circle
+          cx={circleX}
+          cy={circleY}
+          r={circleR}
+        />)
+      shapeBorder = (
+        <circle
+          cx={circleX}
+          cy={circleY}
+          r={circleR}
+          strokeWidth="2"
+          stroke="#fff"
+          fill='none'
+        />
+      )
+      break;
+    }
+    default: {
+      shapeMask = null
+      shapeBorder = null
+    }
   }
+
   return (
     <svg
       className='camera-overlay'
@@ -39,11 +70,7 @@ const CameraOverlay = ({
             height={'100%'}
             fill="#fff"
           />
-          <circle
-            cx={circleX}
-            cy={circleY}
-            r={circleR}
-          />
+          {shapeMask}
         </mask>
       </defs>
       <rect
@@ -54,14 +81,7 @@ const CameraOverlay = ({
         mask="url(#mask)"
         fillOpacity="0.4"
       />
-      <circle 
-        cx={circleX}
-        cy={circleY}
-        r={circleR}
-        strokeWidth="2"
-        stroke="#fff"
-        fill='none'
-      />
+      {shapeBorder}
     </svg>
   )
 }

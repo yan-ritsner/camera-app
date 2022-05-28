@@ -3,7 +3,7 @@ export const CAMERA_FACING_MODE = {
   ENVIRONMENT: 'environment',
 }
 
-export const CAMERA_FOCUS_MODE ={
+export const CAMERA_FOCUS_MODE = {
   MANUAL: 'manual',
   CONTINUOUS: 'continuous',
 }
@@ -17,6 +17,11 @@ export const CAMERA_ERROR_MESSAGES = {
   PERMISSION_DENIED: 'Permission denied. Please refresh and give camera permission.',
   CANNOT_SWITCH_CAMERA: 'It is not possible to switch camera to different one because there is only one video device accessible.',
   CANVAS_NOT_SUPPORTED: 'Canvas is not supported.'
+}
+
+export const CAMERA_OVERLAY_SHAPE = {
+  CIRCLE: 'circle',
+  RECTANGLE: 'rectangle',
 }
 
 export const CAMERA_FILTERS = {

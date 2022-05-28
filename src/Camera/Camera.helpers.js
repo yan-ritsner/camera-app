@@ -75,6 +75,7 @@ export const takeCameraPhoto = ({
   player,
   container,
   canvas,
+  mirorred,
   format,
   quality,
   filter,
@@ -107,6 +108,12 @@ export const takeCameraPhoto = ({
   canvas.height = sH
 
   const context = canvas.getContext('2d')
+
+  if (mirorred) {
+    context.translate(canvas.width, 0);
+    context.scale(-1, 1);
+  }
+
   context.drawImage(player, sX, sY, sW, sH, 0, 0, sW, sH)
 
   if (filter && !_isEqual(filter, CAMERA_FILTERS.NONE)) {
@@ -120,13 +127,13 @@ export const takeCameraPhoto = ({
   return imgDataUrl
 }
 
-export const getCameraTrack = (stream) =>{
+export const getCameraTrack = (stream) => {
   if (!stream) return
   const [track] = stream.getTracks()
   return track
 }
 
-export const getCameraCapabilities = (stream) =>{
+export const getCameraCapabilities = (stream) => {
   const track = getCameraTrack(stream)
   if (!track) return
 
@@ -142,7 +149,7 @@ export const setCameraSettings = (stream, settings) => {
   printCameraSettings(stream)
 }
 
-export const printCameraSettings = (stream) =>{
+export const printCameraSettings = (stream) => {
   const track = getCameraTrack(stream)
   if (!track) return
 
@@ -159,16 +166,16 @@ export const printCameraSettings = (stream) =>{
 }
 
 export const applyCameraFilter = (
-  sourceImageData, 
-  outputImageData, 
+  sourceImageData,
+  outputImageData,
   filter
 ) => {
-  switch(filter){
-    case CAMERA_FILTERS.SHARPEN:{
+  switch (filter) {
+    case CAMERA_FILTERS.SHARPEN: {
       const filterData = [
-        0, -1, 0, 
+        0, -1, 0,
         -1, 5, -1,
-         0, -1,  0
+        0, -1, 0
       ]
       return applyConvolution(sourceImageData, outputImageData, filterData)
     }
@@ -178,60 +185,60 @@ export const applyCameraFilter = (
 }
 
 const applyConvolution = (
-  sourceImageData, 
+  sourceImageData,
   outputImageData,
   kernel
 ) => {
 
   const {
-    data: src, 
-    width: srcWidth, 
+    data: src,
+    width: srcWidth,
     height: srcHeight
   } = sourceImageData
 
   const {
     data: dst,
   } = outputImageData
-  
+
   const side = Math.round(Math.sqrt(_size(kernel)))
-  const halfSide = Math.floor(side/2)
-  
+  const halfSide = Math.floor(side / 2)
+
   // padding the output by the convolution kernel
   const w = srcWidth
   const h = srcHeight
-  
+
   // iterating through the output image pixels
   for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {      
+    for (let x = 0; x < w; x++) {
       let r = 0, g = 0, b = 0, a = 0
-      
+
       // calculating the weighed sum of the source image pixels that
       // fall under the convolution kernel
       for (let cy = 0; cy < side; cy++) {
         for (let cx = 0; cx < side; cx++) {
           const scy = y + cy - halfSide
           const scx = x + cx - halfSide
-          
+
           if (scy >= 0 && scy < srcHeight && scx >= 0 && scx < srcWidth) {
-            let srcOffset = (scy*srcWidth+scx) * 4
-            let wt = kernel[cy*side+cx]
+            let srcOffset = (scy * srcWidth + scx) * 4
+            let wt = kernel[cy * side + cx]
             r += src[srcOffset] * wt
-            g += src[srcOffset+1] * wt
-            b += src[srcOffset+2] * wt
-            a += src[srcOffset+3] * wt
+            g += src[srcOffset + 1] * wt
+            b += src[srcOffset + 2] * wt
+            a += src[srcOffset + 3] * wt
           }
         }
       }
-      
-      const dstOffset = (y*w+x)*4
-      
+
+      const dstOffset = (y * w + x) * 4
+
       dst[dstOffset] = r
-      dst[dstOffset+1] = g
-      dst[dstOffset+2] = b
-      dst[dstOffset+3] = a
+      dst[dstOffset + 1] = g
+      dst[dstOffset + 2] = b
+      dst[dstOffset + 3] = a
     }
   }
-  
+
   return outputImageData
 }
 
