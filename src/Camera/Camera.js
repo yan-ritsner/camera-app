@@ -16,7 +16,8 @@ import {
   CAMERA_DEFAULT_FORMAT,
   CAMERA_DEFAULT_QUALITY,
   CAMERA_FILTERS,
-  CAMERA_OVERLAY_SHAPE
+  CAMERA_OVERLAY_SHAPE,
+  CAMERA_RECT_RATIO
 } from './Camera.constants'
 import {
   initCameraStream,
@@ -177,9 +178,11 @@ export const Camera = React.forwardRef((props, ref) => {
         <CameraOverlay
           width={containerWidth}
           height={containerHeight}
-          shapeType={CAMERA_OVERLAY_SHAPE.CIRCLE}
+          shapeType={CAMERA_OVERLAY_SHAPE.RECT}
+          shapeRatio={CAMERA_RECT_RATIO.CARD}
           shapeHMargin={20}
           shapeVMargin={100}
+          shapeBorderRadius={10}
         />
       </div>
     </div>

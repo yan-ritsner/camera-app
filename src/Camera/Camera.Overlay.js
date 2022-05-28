@@ -9,12 +9,13 @@ const CameraOverlay = ({
   shapeWidth,
   shapeHeight,
   shapeRatio,
+  shapeBorderRadius,
   shapeHMargin,
   shapeVMargin,
 }) => {
 
-  let shapeMask = null
-  let shapeBorder = null
+  let shapeMask
+  let shapeBorder
   switch (shapeType) {
     case CAMERA_OVERLAY_SHAPE.CIRCLE: {
       const circleR = shapeRadius
@@ -26,17 +27,67 @@ const CameraOverlay = ({
       if (circleOverflow > 0) {
         circleY = circleY - circleOverflow - shapeHMargin
       }
+      const shapeProps = {
+        cx: circleX,
+        cy: circleY,
+        r: circleR,
+      }
       shapeMask = (
         <circle
-          cx={circleX}
-          cy={circleY}
-          r={circleR}
-        />)
+          {...shapeProps}
+        />
+      )
       shapeBorder = (
         <circle
-          cx={circleX}
-          cy={circleY}
-          r={circleR}
+          {...shapeProps}
+          strokeWidth="2"
+          stroke="#fff"
+          fill='none'
+        />
+      )
+      break;
+    }
+    case CAMERA_OVERLAY_SHAPE.RECT: {
+      let rectWidth
+      let rectHeight
+      let rectX
+      let rectY
+
+      if (height > width) {
+        rectWidth = shapeWidth
+          ? shapeWidth
+          : Math.max(width - (shapeHMargin * 2), 0)
+        rectHeight = shapeHeight
+          ? shapeHeight
+          : rectWidth / shapeRatio
+        rectX = shapeHMargin
+        rectY = shapeVMargin
+      } else {
+        rectHeight = shapeHeight
+          ? shapeHeight
+          : Math.max(height - (shapeHMargin * 2), 0)
+        rectWidth = shapeWidth
+          ? shapeWidth
+          : rectHeight * shapeRatio
+        rectX = shapeVMargin
+        rectY = shapeHMargin
+      }
+
+      const shapeProps = {
+        width: rectWidth,
+        height: rectHeight,
+        x: rectX,
+        y: rectY,
+        rx: shapeBorderRadius
+      }
+      shapeMask = (
+        <rect
+          {...shapeProps}
+        />
+      )
+      shapeBorder = (
+        <rect
+          {...shapeProps}
           strokeWidth="2"
           stroke="#fff"
           fill='none'

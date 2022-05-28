@@ -21,7 +21,11 @@ export const CAMERA_ERROR_MESSAGES = {
 
 export const CAMERA_OVERLAY_SHAPE = {
   CIRCLE: 'circle',
-  RECTANGLE: 'rectangle',
+  RECT: 'rect',
+}
+
+export const CAMERA_RECT_RATIO = {
+  CARD: 1.586,
 }
 
 export const CAMERA_FILTERS = {
