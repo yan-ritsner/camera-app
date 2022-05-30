@@ -1,5 +1,8 @@
 import React from 'react'
 import { CAMERA_OVERLAY_SHAPE } from './Camera.constants'
+import CameraOverlayCircle from './Camera.Overlay.Circle'
+import CameraOverlayRect from './Camera.Overlay.Rect'
+
 
 const CameraOverlay = ({
   width,
@@ -13,84 +16,50 @@ const CameraOverlay = ({
   shapeHMargin,
   shapeVMargin,
 }) => {
-  const borderProps = {
-    strokeWidth: "2",
-    stroke: "#fff",
-    fill: 'none',
-  }
   let shapeMask
   let shapeBorder
   switch (shapeType) {
     case CAMERA_OVERLAY_SHAPE.CIRCLE: {
-      const circleR = shapeRadius
-        ? shapeRadius
-        : Math.max(Math.min(width, height) / 2 - shapeHMargin, 0)
-      const circleX = '50%'
-      let circleY = circleR + shapeVMargin
-      const circleOverflow = circleY + circleR - height
-      if (circleOverflow > 0) {
-        circleY = circleY - circleOverflow - shapeHMargin
-      }
       const shapeProps = {
-        cx: circleX,
-        cy: circleY,
-        r: circleR,
+        width,
+        height,
+        shapeRadius,
+        shapeHMargin,
+        shapeVMargin,
       }
       shapeMask = (
-        <circle
+        <CameraOverlayCircle
           {...shapeProps}
         />
       )
       shapeBorder = (
-        <circle
+        <CameraOverlayCircle
           {...shapeProps}
-          {...borderProps}
+          shapeBorder
         />
       )
       break;
     }
     case CAMERA_OVERLAY_SHAPE.RECT: {
-      let rectWidth
-      let rectHeight
-      let rectX
-      let rectY
-
-      if (height > width) {
-        rectWidth = shapeWidth
-          ? shapeWidth
-          : Math.max(width - (shapeHMargin * 2), 0)
-        rectHeight = shapeHeight
-          ? shapeHeight
-          : rectWidth / shapeRatio
-        rectX = shapeHMargin
-        rectY = shapeVMargin
-      } else {
-        rectHeight = shapeHeight
-          ? shapeHeight
-          : Math.max(height - (shapeHMargin * 2), 0)
-        rectWidth = shapeWidth
-          ? shapeWidth
-          : rectHeight * shapeRatio
-        rectX = shapeVMargin
-        rectY = shapeHMargin
-      }
-
       const shapeProps = {
-        width: rectWidth,
-        height: rectHeight,
-        x: rectX,
-        y: rectY,
-        rx: shapeBorderRadius
+        width,
+        height,
+        shapeWidth,
+        shapeHeight,
+        shapeRatio,
+        shapeHMargin,
+        shapeVMargin,
+        shapeBorderRadius,
       }
       shapeMask = (
-        <rect
+        <CameraOverlayRect
           {...shapeProps}
         />
       )
       shapeBorder = (
-        <rect
+        <CameraOverlayRect
           {...shapeProps}
-          {...borderProps}
+          shapeBorder
         />
       )
       break;
