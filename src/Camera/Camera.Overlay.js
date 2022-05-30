@@ -13,7 +13,11 @@ const CameraOverlay = ({
   shapeHMargin,
   shapeVMargin,
 }) => {
-
+  const borderProps = {
+    strokeWidth: "2",
+    stroke: "#fff",
+    fill: 'none',
+  }
   let shapeMask
   let shapeBorder
   switch (shapeType) {
@@ -40,9 +44,7 @@ const CameraOverlay = ({
       shapeBorder = (
         <circle
           {...shapeProps}
-          strokeWidth="2"
-          stroke="#fff"
-          fill='none'
+          {...borderProps}
         />
       )
       break;
@@ -88,16 +90,13 @@ const CameraOverlay = ({
       shapeBorder = (
         <rect
           {...shapeProps}
-          strokeWidth="2"
-          stroke="#fff"
-          fill='none'
+          {...borderProps}
         />
       )
       break;
     }
     default: {
-      shapeMask = null
-      shapeBorder = null
+      return null
     }
   }
 
