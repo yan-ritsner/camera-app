@@ -37,9 +37,11 @@ export const Camera = React.forwardRef((props, ref) => {
     height = CAMERA_DEFAULT_HEIGHT,
     format = CAMERA_DEFAULT_FORMAT,
     quality = CAMERA_DEFAULT_QUALITY,
-    filter = CAMERA_FILTERS.SHARPER,
+    filter = CAMERA_FILTERS.SHARPEN,
     numberOfCamerasCallback = () => 0,
-    cameraCapabilitiesCallback = () => ({})
+    cameraCapabilitiesCallback = () => ({}),
+    showSelfieOverlay = false,
+    showCardOverlay = false,
   } = props
 
   const player = useRef(null)
@@ -151,6 +153,14 @@ export const Camera = React.forwardRef((props, ref) => {
     height: containerHeight
   } = useElementSize(container)
 
+  let overlayShape = CAMERA_OVERLAY_SHAPE.NONE
+  if (isUserFacing && showSelfieOverlay) {
+    overlayShape = CAMERA_OVERLAY_SHAPE.CIRCLE
+  } else if (!isUserFacing && showCardOverlay) {
+    overlayShape = CAMERA_OVERLAY_SHAPE.RECT
+  }
+
+
   return (
     <div
       ref={container}
@@ -178,7 +188,7 @@ export const Camera = React.forwardRef((props, ref) => {
         <CameraOverlay
           width={containerWidth}
           height={containerHeight}
-          shapeType={CAMERA_OVERLAY_SHAPE.RECT}
+          shapeType={overlayShape}
           shapeRatio={CAMERA_RECT_RATIO.CARD}
           shapeHMargin={20}
           shapeVMargin={100}

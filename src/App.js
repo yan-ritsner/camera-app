@@ -127,6 +127,8 @@ const App = () => {
           numberOfCamerasCallback={setNumberOfCameras}
           cameraCapabilitiesCallback={setCameraCapabilities}
           filter={applyFilter ? CAMERA_FILTERS.SHARPEN : CAMERA_FILTERS.NONE}
+          showSelfieOverlay
+          showCardOverlay
         />
       )}
       <div className='camera-controls'>

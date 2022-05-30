@@ -11,11 +11,15 @@ const CameraOverlayCircle = ({
   const circleR = shapeRadius
     ? shapeRadius
     : Math.max(Math.min(width, height) / 2 - shapeHMargin, 0)
-  const circleX = '50%'
-  let circleY = circleR + shapeVMargin
-  const circleOverflow = circleY + circleR - height
-  if (circleOverflow > 0) {
-    circleY = circleY - circleOverflow - shapeHMargin
+  let circleX
+  let circleY
+
+  if (height > width) {
+    circleX = '50%'
+    circleY = circleR + shapeVMargin
+  } else {
+    circleX = circleR + shapeVMargin
+    circleY = '50%'
   }
 
   const shapeProps = {

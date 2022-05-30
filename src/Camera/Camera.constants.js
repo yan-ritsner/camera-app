@@ -20,6 +20,7 @@ export const CAMERA_ERROR_MESSAGES = {
 }
 
 export const CAMERA_OVERLAY_SHAPE = {
+  NONE: 'none',
   CIRCLE: 'circle',
   RECT: 'rect',
 }
