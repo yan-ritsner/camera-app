@@ -1,10 +1,11 @@
 import React, { useState, useRef, useCallback, useEffect } from "react"
+import _has from 'lodash/has'
 
 import { Camera } from "./Camera"
-import { 
-  CAMERA_ASPECT_RATIO, 
-  CAMERA_FILTERS, 
-  CAMERA_FOCUS_MODE 
+import {
+  CAMERA_ASPECT_RATIO,
+  CAMERA_FILTERS,
+  CAMERA_FOCUS_MODE
 } from "./Camera/Camera.constants"
 
 import './App.css'
@@ -23,47 +24,71 @@ const App = () => {
   const camera = useRef(null)
 
   const {
-    focusDistance : focusDistanceCapabilities = {}
+    focusDistance: focusDistanceCapabilities = {}
   } = cameraCapabilities || {}
 
   const {
-    min: focusDistanceMin, 
+    min: focusDistanceMin,
     max: focusDistanceMax,
     step: focusDistanceStep,
-  }  = focusDistanceCapabilities
+  } = focusDistanceCapabilities
 
-  useEffect(()=> {
-    if (!camera.current || !cameraCapabilities) return
+  useEffect(() => {
+    if (!camera.current
+      || !cameraCapabilities
+      || !_has(cameraCapabilities, 'focusMode')
+    ) return
 
+    const focusMode = manualFocus
+      ? CAMERA_FOCUS_MODE.MANUAL
+      : CAMERA_FOCUS_MODE.CONTINUOUS
+
+    let focusDistanceValue = focusDistance
+    if (!focusDistanceValue
+      || focusDistanceValue < focusDistanceMin
+    ) {
+      focusDistanceValue = focusDistanceMin
+    } else if (focusDistanceValue > focusDistanceMax) {
+      focusDistanceValue = focusDistanceMax
+    }
+
+    const focusSettings = manualFocus
+      && _has(cameraCapabilities, 'focusDistance')
+      ? {
+        focusMode,
+        focusDistance: focusDistanceValue
+      }
+      : {
+        focusMode
+      }
     camera.current.setCameraSettings({
-      advanced: [{
-        focusMode:  manualFocus 
-          ? CAMERA_FOCUS_MODE.MANUAL 
-          : CAMERA_FOCUS_MODE.CONTINUOUS,
-        focusDistance: manualFocus 
-          ? focusDistance || focusDistanceMin
-          :undefined,
-      }]
+      advanced: [focusSettings]
     })
-  },[manualFocus, focusDistance, focusDistanceMin, cameraCapabilities])
+  }, [
+    manualFocus,
+    focusDistance,
+    focusDistanceMin,
+    focusDistanceMax,
+    cameraCapabilities
+  ])
 
 
-  const toggleImage  = useCallback(()=>{
+  const toggleImage = useCallback(() => {
     setShowImage((value) => !value)
   }, [])
-  const toggleSettings  = useCallback(()=>{
+  const toggleSettings = useCallback(() => {
     setShowSettings((value) => !value)
   }, [])
-  const toggleFilter  = useCallback(()=>{
+  const toggleFilter = useCallback(() => {
     setApplyFilter((value) => !value)
   }, [])
-  const toggleManualFocus = useCallback(()=>{
+  const toggleManualFocus = useCallback(() => {
     setManualFocus((value) => !value)
   }, [])
   const toggleFullScreen = useCallback(() => {
     setFullScreen((value) => !value)
     if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
+      document.documentElement.requestFullscreen();
     } else {
       if (document.exitFullscreen) {
         document.exitFullscreen();
@@ -71,19 +96,19 @@ const App = () => {
     }
   }, [])
 
-  const takePhoto = useCallback(()=> {
+  const takePhoto = useCallback(() => {
     if (!camera.current) return
 
     const photo = camera.current.takePhoto()
     console.log(photo)
     setImage(photo)
-  },[])
-  const switchCamera = useCallback(()=> {
+  }, [])
+  const switchCamera = useCallback(() => {
     if (!camera.current) return
 
     const result = camera.current.switchCamera()
     console.log(result)
-  },[])
+  }, [])
 
   const backgroundImage = image ? `url(${image})` : ''
 
@@ -92,7 +117,7 @@ const App = () => {
       {showImage ? (
         <div
           className='camera-full-screen-image-preview'
-          style={{backgroundImage}}
+          style={{ backgroundImage }}
           onClick={toggleImage}
         />
       ) : (
@@ -101,13 +126,13 @@ const App = () => {
           aspectRatio={CAMERA_ASPECT_RATIO.COVER}
           numberOfCamerasCallback={setNumberOfCameras}
           cameraCapabilitiesCallback={setCameraCapabilities}
-          filter={applyFilter ? CAMERA_FILTERS.SHARPEN: CAMERA_FILTERS.NONE}
+          filter={applyFilter ? CAMERA_FILTERS.SHARPEN : CAMERA_FILTERS.NONE}
         />
       )}
       <div className='camera-controls'>
         <div
           className='camera-image-preview'
-          style={{backgroundImage}}
+          style={{ backgroundImage }}
           onClick={toggleImage}
         />
         <button
@@ -123,7 +148,7 @@ const App = () => {
       <button
         className='camera-button camera-settings-button'
         onClick={toggleSettings}
-      
+
       />
       {showSettings && (
         <div className='camera-settings'>
@@ -132,11 +157,11 @@ const App = () => {
             <label htmlFor="filter">
               Apply Filter
             </label>
-            <input 
-              type="checkbox" 
-              id="filter" 
-              name="filter" 
-              checked={applyFilter} 
+            <input
+              type="checkbox"
+              id="filter"
+              name="filter"
+              checked={applyFilter}
               onChange={toggleFilter}
             />
           </div>
@@ -144,11 +169,11 @@ const App = () => {
             <label htmlFor="fullScreen">
               Full Screen
             </label>
-            <input 
-              type="checkbox" 
-              id="fullScreen" 
-              name="fullScreen" 
-              checked={fullScreen} 
+            <input
+              type="checkbox"
+              id="fullScreen"
+              name="fullScreen"
+              checked={fullScreen}
               onChange={toggleFullScreen}
             />
           </div>
@@ -156,11 +181,11 @@ const App = () => {
             <label htmlFor="manualFocus">
               Manual Focus
             </label>
-            <input 
-              type="checkbox" 
-              id="manualFocus" 
-              name="manualFocus" 
-              checked={manualFocus} 
+            <input
+              type="checkbox"
+              id="manualFocus"
+              name="manualFocus"
+              checked={manualFocus}
               onChange={toggleManualFocus}
             />
           </div>
@@ -168,15 +193,15 @@ const App = () => {
             <label htmlFor="focusDistance">
               Focus Distance
             </label>
-            <input 
-              type="range" 
-              id="focusDistance" 
-              name="focusDistance"    
+            <input
+              type="range"
+              id="focusDistance"
+              name="focusDistance"
               min={focusDistanceMin}
               max={focusDistanceMax}
               step={focusDistanceStep}
               value={focusDistance}
-              onChange={(e)=> setFocusDistance(e.target.value)}
+              onChange={(e) => setFocusDistance(e.target.value)}
             />
           </div>
           <div>{focusDistance}</div>
