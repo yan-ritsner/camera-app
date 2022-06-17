@@ -1,71 +1,51 @@
 import React from 'react'
 import { CAMERA_OVERLAY_SHAPE } from './Camera.constants'
-import CameraOverlayCircle from './Camera.Overlay.Circle'
-import CameraOverlayRect from './Camera.Overlay.Rect'
-
 
 const CameraOverlay = ({
   width,
   height,
   shapeType,
-  shapeRadius,
-  shapeWidth,
-  shapeHeight,
-  shapeRatio,
-  shapeBorderRadius,
-  shapeHMargin,
-  shapeVMargin,
+  shapeProps,
 }) => {
+  const borderProps = {
+    strokeWidth: "2",
+    stroke: "#fff",
+    fill: 'none',
+  }
   let shapeMask
   let shapeBorder
   switch (shapeType) {
     case CAMERA_OVERLAY_SHAPE.CIRCLE: {
-      const shapeProps = {
-        width,
-        height,
-        shapeRadius,
-        shapeHMargin,
-        shapeVMargin,
-      }
       shapeMask = (
-        <CameraOverlayCircle
+        <circle
           {...shapeProps}
         />
       )
       shapeBorder = (
-        <CameraOverlayCircle
+        <circle
           {...shapeProps}
-          shapeBorder
+          {...borderProps}
         />
       )
       break;
     }
     case CAMERA_OVERLAY_SHAPE.RECT: {
-      const shapeProps = {
-        width,
-        height,
-        shapeWidth,
-        shapeHeight,
-        shapeRatio,
-        shapeHMargin,
-        shapeVMargin,
-        shapeBorderRadius,
-      }
       shapeMask = (
-        <CameraOverlayRect
+        <rect
           {...shapeProps}
         />
       )
       shapeBorder = (
-        <CameraOverlayRect
+        <rect
           {...shapeProps}
-          shapeBorder
+          {...borderProps}
         />
       )
       break;
     }
     default: {
-      return null
+      shapeMask = null
+      shapeBorder = null
     }
   }
 

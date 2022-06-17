@@ -3,13 +3,13 @@ import React, {
   useEffect,
   useRef,
   useImperativeHandle,
+  forwardRef,
 } from 'react'
 import classNames from 'classnames'
 import _isEqual from 'lodash/isEqual'
 
 import {
   CAMERA_ASPECT_RATIO,
-  CAMERA_ERROR_MESSAGES,
   CAMERA_FACING_MODE,
   CAMERA_DEFAULT_WIDTH,
   CAMERA_DEFAULT_HEIGHT,
@@ -17,19 +17,19 @@ import {
   CAMERA_DEFAULT_QUALITY,
   CAMERA_FILTERS,
   CAMERA_OVERLAY_SHAPE,
-  CAMERA_RECT_RATIO
 } from './Camera.constants'
 import {
   initCameraStream,
   stopCameraStream,
   takeCameraPhoto,
   setCameraSettings,
+  getOverlayShapeProps,
 } from './Camera.helpers'
 import './Camera.css'
 import CameraOverlay from './Camera.Overlay'
 import { useElementSize } from './Camera.hooks'
 
-export const Camera = React.forwardRef((props, ref) => {
+export const Camera = forwardRef((props, ref) => {
   const {
     facingMode = CAMERA_FACING_MODE.USER,
     aspectRatio = CAMERA_ASPECT_RATIO.COVER,
@@ -38,25 +38,66 @@ export const Camera = React.forwardRef((props, ref) => {
     format = CAMERA_DEFAULT_FORMAT,
     quality = CAMERA_DEFAULT_QUALITY,
     filter = CAMERA_FILTERS.SHARPEN,
-    numberOfCamerasCallback = () => 0,
-    cameraCapabilitiesCallback = () => ({}),
-    showSelfieOverlay = false,
-    showCardOverlay = false,
+    overlayShapeType = CAMERA_OVERLAY_SHAPE.NONE,
+    overlayVisible = false,
+    icon = '',
+    title = '',
+    subtitle = '',
+    image = '',
+    shutterButtonVisible = false,
+    primaryButtonVisible = false,
+    secondaryButtonVisible = false,
+    primaryButtonText = '',
+    secondaryButtonText = '',
+    numberOfCamerasCallback = () => { },
+    cameraCapabilitiesCallback = () => { },
+    onTakePhoto = () => { },
+    onPrimaryButtonClick = () => { },
+    onSecondaryButtonClick = () => { },
   } = props
 
   const player = useRef(null)
   const canvas = useRef(null)
   const container = useRef(null)
 
-  const [numberOfCameras, setNumberOfCameras] = useState(0)
-  const [cameraCapabilities, setCameraCapabilities] = useState({})
   const [stream, setStream] = useState(null)
-  const [currentFacingMode, setFacingMode] = useState(facingMode)
+  const [numberOfCameras, setNumberOfCameras] = useState(0)
   const [notSupported, setNotSupported] = useState(false)
   const [permissionDenied, setPermissionDenied] = useState(false)
+  const [cameraCapabilities, setCameraCapabilities] = useState({})
 
   const isCoverRatio = _isEqual(aspectRatio, CAMERA_ASPECT_RATIO.COVER)
-  const isUserFacing = _isEqual(currentFacingMode, CAMERA_FACING_MODE.USER)
+  const isUserFacing = _isEqual(facingMode, CAMERA_FACING_MODE.USER)
+
+  const takePhoto = () => {
+    if (notSupported ||
+      permissionDenied ||
+      numberOfCameras < 1 ||
+      !canvas.current
+    ) {
+      return
+    }
+    const photo = takeCameraPhoto({
+      player: player.current,
+      container: container.current,
+      canvas: canvas.current,
+      mirorred: isUserFacing,
+      format,
+      quality,
+      filter,
+    })
+    onTakePhoto(photo)
+    return photo
+  }
+
+  const setSettings = (settings) => {
+    setCameraSettings(stream, settings)
+  }
+
+  useImperativeHandle(ref, () => ({
+    takePhoto,
+    setSettings,
+  }))
 
   useEffect(() => {
     numberOfCamerasCallback(numberOfCameras)
@@ -66,50 +107,9 @@ export const Camera = React.forwardRef((props, ref) => {
     cameraCapabilitiesCallback(cameraCapabilities)
   }, [cameraCapabilities, cameraCapabilitiesCallback])
 
-  useImperativeHandle(ref, () => ({
-    takePhoto: () => {
-      if (numberOfCameras < 1) {
-        throw new Error(CAMERA_ERROR_MESSAGES.NO_CAMERA_ACCESSIBLE)
-      } else if (!canvas.current) {
-        throw new Error(CAMERA_ERROR_MESSAGES.CANVAS_NOT_SUPPORTED)
-      }
-      return takeCameraPhoto({
-        player: player.current,
-        container: container.current,
-        canvas: canvas.current,
-        mirorred: isUserFacing,
-        format,
-        quality,
-        filter,
-      })
-    },
-    switchCamera: () => {
-      if (numberOfCameras < 1) {
-        throw new Error(CAMERA_ERROR_MESSAGES.NO_CAMERA_ACCESSIBLE)
-      } else if (numberOfCameras < 2) {
-        throw new Error(CAMERA_ERROR_MESSAGES.CANNOT_SWITCH_CAMERA)
-      }
-      const newFacingMode = isUserFacing
-        ? CAMERA_FACING_MODE.ENVIRONMENT
-        : CAMERA_FACING_MODE.USER
-      stopCameraStream(stream)
-      setFacingMode(newFacingMode)
-      return newFacingMode
-    },
-    getNumberOfCameras: () => {
-      return numberOfCameras
-    },
-    getCameraCapabilities: () => {
-      return cameraCapabilities
-    },
-    setCameraSettings: (settings) => {
-      setCameraSettings(stream, settings)
-    }
-  }))
-
   useEffect(() => {
     initCameraStream({
-      currentFacingMode,
+      facingMode,
       width,
       height,
       setStream,
@@ -118,7 +118,7 @@ export const Camera = React.forwardRef((props, ref) => {
       setPermissionDenied,
       setCameraCapabilities,
     })
-  }, [currentFacingMode, width, height])
+  }, [facingMode, width, height])
 
   useEffect(() => {
     if (stream && player && player.current) {
@@ -128,13 +128,6 @@ export const Camera = React.forwardRef((props, ref) => {
       stopCameraStream(stream)
     }
   }, [stream])
-
-  let errorMessage
-  if (notSupported) {
-    errorMessage = CAMERA_ERROR_MESSAGES.NO_CAMERA_ACCESSIBLE
-  } else if (permissionDenied) {
-    errorMessage = CAMERA_ERROR_MESSAGES.PERMISSION_DENIED
-  }
 
   const containerClasses = classNames(
     'camera-container',
@@ -152,14 +145,14 @@ export const Camera = React.forwardRef((props, ref) => {
     width: containerWidth,
     height: containerHeight
   } = useElementSize(container)
-
-  let overlayShape = CAMERA_OVERLAY_SHAPE.NONE
-  if (isUserFacing && showSelfieOverlay) {
-    overlayShape = CAMERA_OVERLAY_SHAPE.CIRCLE
-  } else if (!isUserFacing && showCardOverlay) {
-    overlayShape = CAMERA_OVERLAY_SHAPE.RECT
-  }
-
+  const {
+    overlayShapeProps = {},
+    overlayShapeMargin = {}
+  } = getOverlayShapeProps({
+    type: overlayShapeType,
+    width: containerWidth,
+    height: containerHeight
+  })
 
   return (
     <div
@@ -167,11 +160,6 @@ export const Camera = React.forwardRef((props, ref) => {
       className={containerClasses}
       style={containerStyle}>
       <div className='camera-wrapper'>
-        {errorMessage && (
-          <div className='camera-error'>
-            {errorMessage}
-          </div>
-        )}
         <video
           id="video"
           ref={player}
@@ -185,15 +173,68 @@ export const Camera = React.forwardRef((props, ref) => {
           ref={canvas}
           className={'camera-canvas'}
         />
-        <CameraOverlay
-          width={containerWidth}
-          height={containerHeight}
-          shapeType={overlayShape}
-          shapeRatio={CAMERA_RECT_RATIO.CARD}
-          shapeHMargin={20}
-          shapeVMargin={100}
-          shapeBorderRadius={10}
-        />
+        {image && (
+          <div
+            className='camera-image'
+            style={{ backgroundImage: `url(${image})` }}
+          />
+        )}
+        {overlayVisible && (
+          <CameraOverlay
+            width={containerWidth}
+            height={containerHeight}
+            shapeType={overlayShapeType}
+            shapeProps={overlayShapeProps}
+          />
+        )}
+        <div
+          className='camera-content'
+          style={{ ...overlayShapeMargin }}
+        >
+          {icon && (
+            <div className='camera-icon'>
+              {icon}
+            </div>
+          )}
+          <div className='camera-controls'>
+            {title && (
+              <div className='camera-title'>
+                {title}
+              </div>
+            )}
+            {subtitle && (
+              <div className='camera-subtitle'>
+                {subtitle}
+              </div>
+            )}
+            <div className='camera-controls-spacer'></div>
+            {shutterButtonVisible && (
+              <button
+                type='button'
+                className='camera-shutter-button'
+                onClick={takePhoto}
+              />
+            )}
+            {primaryButtonVisible && (
+              <button
+                type='button'
+                className='camera-action-button camera-action-button-primary'
+                onClick={onPrimaryButtonClick}
+              >
+                {primaryButtonText}
+              </button>
+            )}
+            {secondaryButtonVisible && (
+              <button
+                type='button'
+                className='camera-action-button camera-action-button-secondary'
+                onClick={onSecondaryButtonClick}
+              >
+                {secondaryButtonText}
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

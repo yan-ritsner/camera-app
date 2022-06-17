@@ -7,10 +7,12 @@ import {
   CAMERA_DEFAULT_WIDTH,
   CAMERA_DEFAULT_HEIGHT,
   CAMERA_FILTERS,
+  CAMERA_RECT_RATIO,
+  CAMERA_OVERLAY_SHAPE,
 } from './Camera.constants'
 
 export const initCameraStream = async ({
-  currentFacingMode,
+  facingMode,
   width,
   height,
   setStream,
@@ -23,7 +25,7 @@ export const initCameraStream = async ({
   const constraints = {
     audio: false,
     video: {
-      facingMode: currentFacingMode,
+      facingMode,
       width: { ideal: width },
       height: { ideal: height },
     },
@@ -182,6 +184,111 @@ export const applyCameraFilter = (
     default:
       return sourceImageData
   }
+}
+
+export const getCircleOverlayProps = ({
+  width,
+  height,
+  hmargin = 20,
+  vmargin = 50,
+}) => {
+  const circleR = Math.max(Math.min(width, height) / 2 - hmargin, 0)
+  let circleX
+  let circleY
+  let circleMargin
+
+  if (height > width) {
+    circleX = '50%'
+    circleY = circleR + vmargin
+    circleMargin = {
+      top: circleY + circleR
+    }
+  } else {
+    circleX = circleR + vmargin
+    circleY = '50%'
+    circleMargin = {
+      left: circleX + circleR
+    }
+  }
+
+  return {
+    overlayShapeProps: {
+      cx: circleX,
+      cy: circleY,
+      r: circleR,
+    },
+    overlayShapeMargin: circleMargin,
+  }
+}
+
+export const getRectOverlayProps = ({
+  width,
+  height,
+  ratio = CAMERA_RECT_RATIO.CARD,
+  hmargin = 20,
+  vmargin = 50,
+  borderRadius = 10
+}) => {
+  let rectWidth
+  let rectHeight
+  let rectX
+  let rectY
+  let rectMargin
+
+  if (height > width) {
+    rectWidth = Math.max(width - (hmargin * 2), 0)
+    rectHeight = rectWidth / ratio
+    rectX = hmargin
+    rectY = vmargin
+    rectMargin = {
+      top: rectY + rectHeight
+    }
+  } else {
+    rectHeight = Math.max(height - (hmargin * 2), 0)
+    rectWidth = rectHeight * ratio
+    rectX = vmargin
+    rectY = hmargin
+    rectMargin = {
+      left: rectX + rectWidth
+    }
+  }
+
+  return {
+    overlayShapeProps: {
+      width: rectWidth,
+      height: rectHeight,
+      x: rectX,
+      y: rectY,
+      rx: borderRadius,
+    },
+    overlayShapeMargin: rectMargin,
+  }
+}
+
+export const getOverlayShapeProps = ({
+  type,
+  width,
+  height,
+}) => {
+  let overlayShapeProps
+  switch (type) {
+    case CAMERA_OVERLAY_SHAPE.CIRCLE:
+      overlayShapeProps = getCircleOverlayProps({
+        width,
+        height,
+      })
+      break
+    case CAMERA_OVERLAY_SHAPE.RECT:
+      overlayShapeProps = getRectOverlayProps({
+        width,
+        height,
+      })
+      break
+    default:
+      overlayShapeProps = {}
+      break
+  }
+  return overlayShapeProps
 }
 
 const applyConvolution = (

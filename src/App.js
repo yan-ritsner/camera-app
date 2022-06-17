@@ -5,7 +5,8 @@ import { Camera } from "./Camera"
 import {
   CAMERA_ASPECT_RATIO,
   CAMERA_FILTERS,
-  CAMERA_FOCUS_MODE
+  CAMERA_FOCUS_MODE,
+  CAMERA_FACING_MODE,
 } from "./Camera/Camera.constants"
 
 import './App.css'
@@ -21,6 +22,8 @@ const App = () => {
   const [focusDistance, setFocusDistance] = useState(0)
   const [fullScreen, setFullScreen] = useState(false)
   const [cameraCapabilities, setCameraCapabilities] = useState()
+  const [facingMode, setFacingMode] = useState(CAMERA_FACING_MODE.USER)
+
   const camera = useRef(null)
 
   const {
@@ -61,7 +64,7 @@ const App = () => {
       : {
         focusMode
       }
-    camera.current.setCameraSettings({
+    camera.current.setSettings({
       advanced: [focusSettings]
     })
   }, [
@@ -104,11 +107,12 @@ const App = () => {
     setImage(photo)
   }, [])
   const switchCamera = useCallback(() => {
-    if (!camera.current) return
-
-    const result = camera.current.switchCamera()
-    console.log(result)
-  }, [])
+    setFacingMode(
+      facingMode === CAMERA_FACING_MODE.USER
+        ? CAMERA_FACING_MODE.ENVIRONMENT
+        : CAMERA_FACING_MODE.USER
+    )
+  }, [facingMode])
 
   const backgroundImage = image ? `url(${image})` : ''
 
@@ -123,6 +127,7 @@ const App = () => {
       ) : (
         <Camera
           ref={camera}
+          facingMode={facingMode}
           aspectRatio={CAMERA_ASPECT_RATIO.COVER}
           numberOfCamerasCallback={setNumberOfCameras}
           cameraCapabilitiesCallback={setCameraCapabilities}
@@ -150,7 +155,6 @@ const App = () => {
       <button
         className='camera-button camera-settings-button'
         onClick={toggleSettings}
-
       />
       {showSettings && (
         <div className='camera-settings'>
