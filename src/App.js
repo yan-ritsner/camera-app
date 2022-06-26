@@ -7,6 +7,7 @@ import {
   CAMERA_FILTERS,
   CAMERA_FOCUS_MODE,
   CAMERA_FACING_MODE,
+  CAMERA_OVERLAY_SHAPE,
 } from "./Camera/Camera.constants"
 
 import './App.css'
@@ -116,6 +117,16 @@ const App = () => {
 
   const backgroundImage = image ? `url(${image})` : ''
 
+
+  const overlayShape = facingMode === CAMERA_FACING_MODE.USER
+    ? CAMERA_OVERLAY_SHAPE.CIRCLE
+    : CAMERA_OVERLAY_SHAPE.RECT
+
+
+  const filter = applyFilter
+    ? CAMERA_FILTERS.SHARPEN
+    : CAMERA_FILTERS.NONE
+
   return (
     <div className='camera-component'>
       {showImage ? (
@@ -131,9 +142,9 @@ const App = () => {
           aspectRatio={CAMERA_ASPECT_RATIO.COVER}
           numberOfCamerasCallback={setNumberOfCameras}
           cameraCapabilitiesCallback={setCameraCapabilities}
-          filter={applyFilter ? CAMERA_FILTERS.SHARPEN : CAMERA_FILTERS.NONE}
-          showSelfieOverlay
-          showCardOverlay
+          filter={filter}
+          overlayShapeType={overlayShape}
+          overlayVisible
         />
       )}
       <div className='camera-controls'>
