@@ -108,6 +108,7 @@ export const Camera = forwardRef((props, ref) => {
   }, [cameraCapabilities, cameraCapabilitiesCallback])
 
   useEffect(() => {
+    stopCameraStream(stream)
     initCameraStream({
       facingMode,
       width,
@@ -118,6 +119,7 @@ export const Camera = forwardRef((props, ref) => {
       setPermissionDenied,
       setCameraCapabilities,
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facingMode, width, height])
 
   useEffect(() => {
