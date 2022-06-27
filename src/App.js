@@ -117,11 +117,9 @@ const App = () => {
 
   const backgroundImage = image ? `url(${image})` : ''
 
-
   const overlayShape = facingMode === CAMERA_FACING_MODE.USER
     ? CAMERA_OVERLAY_SHAPE.CIRCLE
     : CAMERA_OVERLAY_SHAPE.RECT
-
 
   const filter = applyFilter
     ? CAMERA_FILTERS.SHARPEN

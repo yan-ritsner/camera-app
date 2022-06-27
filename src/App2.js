@@ -26,6 +26,11 @@ const App = () => {
   const onRetakePhoto = () => {
     setImage('')
   }
+
+  const overlayShape = facingMode === CAMERA_FACING_MODE.USER
+    ? CAMERA_OVERLAY_SHAPE.CIRCLE
+    : CAMERA_OVERLAY_SHAPE.RECT
+
   return (
     <>
       <Camera
@@ -33,7 +38,7 @@ const App = () => {
         facingMode={facingMode}
         aspectRatio={CAMERA_ASPECT_RATIO.COVER}
         filter={CAMERA_FILTERS.SHARPEN}
-        overlayShapeType={CAMERA_OVERLAY_SHAPE.CIRCLE}
+        overlayShapeType={overlayShape}
         overlayVisible
         shutterButtonVisible
         primaryButtonVisible

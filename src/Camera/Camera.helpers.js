@@ -192,7 +192,9 @@ export const getCircleOverlayProps = ({
   hmargin = 20,
   vmargin = 50,
 }) => {
-  const circleR = Math.max(Math.min(width, height) / 2 - hmargin, 0)
+  const maxSize = Math.max(width, height)
+  const minSize = Math.min(width, height, maxSize * 2 / 3)
+  const circleR = Math.max(minSize / 2 - hmargin, 0)
   let circleX
   let circleY
   let circleMargin
@@ -238,7 +240,12 @@ export const getRectOverlayProps = ({
   if (height > width) {
     rectWidth = Math.max(width - (hmargin * 2), 0)
     rectHeight = rectWidth / ratio
-    rectX = hmargin
+    const maxHeight = width * 2 / 3
+    if (rectHeight > maxHeight) {
+      rectHeight = maxHeight
+      rectWidth = rectHeight * ratio
+    }
+    rectX = (width - rectWidth) / 2
     rectY = vmargin
     rectMargin = {
       top: rectY + rectHeight
@@ -246,8 +253,13 @@ export const getRectOverlayProps = ({
   } else {
     rectHeight = Math.max(height - (hmargin * 2), 0)
     rectWidth = rectHeight * ratio
+    const maxWidth = width * 2 / 3
+    if (rectWidth > maxWidth) {
+      rectWidth = maxWidth
+      rectHeight = rectWidth / ratio
+    }
     rectX = vmargin
-    rectY = hmargin
+    rectY = (height - rectHeight) / 2
     rectMargin = {
       left: rectX + rectWidth
     }
