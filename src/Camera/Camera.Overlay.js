@@ -1,4 +1,6 @@
 import React from 'react'
+import classNames from 'classnames'
+
 import { CAMERA_OVERLAY_SHAPE } from './Camera.constants'
 
 const CameraOverlay = ({
@@ -6,6 +8,8 @@ const CameraOverlay = ({
   height,
   shapeType,
   shapeProps,
+  isFlashing,
+  onStopFlashing,
 }) => {
   const borderProps = {
     strokeWidth: "2",
@@ -49,10 +53,17 @@ const CameraOverlay = ({
     }
   }
 
+
+  const classes = classNames(
+    'camera-overlay',
+    { 'camera-flash': isFlashing },
+  )
+
   return (
     <svg
-      className='camera-overlay'
+      className={classes}
       viewBox={`0 0 ${width} ${height}`}
+      onAnimationEnd={onStopFlashing}
     >
       <defs>
         <mask

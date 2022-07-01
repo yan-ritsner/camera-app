@@ -171,3 +171,17 @@
         margin-right: auto;
     }
 }
+
+@keyframes flash-animation {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0; 
+    }
+}
+
+.camera-flash {
+    animation: flash-animation 300ms ease-out;
+}

@@ -65,6 +65,7 @@ export const Camera = forwardRef((props, ref) => {
   const [notSupported, setNotSupported] = useState(false)
   const [permissionDenied, setPermissionDenied] = useState(false)
   const [cameraCapabilities, setCameraCapabilities] = useState({})
+  const [isFlashing, setIsFlashing] = useState(false)
 
   const isCoverRatio = _isEqual(aspectRatio, CAMERA_ASPECT_RATIO.COVER)
   const isUserFacing = _isEqual(facingMode, CAMERA_FACING_MODE.USER)
@@ -77,6 +78,7 @@ export const Camera = forwardRef((props, ref) => {
     ) {
       return
     }
+    setIsFlashing(true)
     const photo = takeCameraPhoto({
       player: player.current,
       container: container.current,
@@ -189,6 +191,8 @@ export const Camera = forwardRef((props, ref) => {
             height={containerHeight}
             shapeType={overlayShapeType}
             shapeProps={overlayShapeProps}
+            isFlashing={isFlashing}
+            onStopFlashing={() => setIsFlashing(false)}
           />
         )}
         <div
