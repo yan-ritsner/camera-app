@@ -20,6 +20,7 @@ export const CAMERA_OVERLAY_SHAPE = {
 
 export const CAMERA_RECT_RATIO = {
   CARD: 1.586,
+  SQUARE: 1,
 }
 
 export const CAMERA_FILTERS = {

@@ -2,6 +2,7 @@ import _filter from 'lodash/filter'
 import _isEqual from 'lodash/isEqual'
 import _size from 'lodash/size'
 import _forEach from 'lodash/forEach'
+import _isEmpty from 'lodash/isEmpty'
 
 import {
   CAMERA_DEFAULT_WIDTH,
@@ -78,6 +79,7 @@ export const takeCameraPhoto = ({
   container,
   canvas,
   mirorred,
+  dimensions,
   format,
   quality,
   filter,
@@ -104,6 +106,14 @@ export const takeCameraPhoto = ({
     sH = playerWidth / canvasAR
     sX = 0
     sY = (playerHeight - sH) / 2
+  }
+
+  if (!_isEmpty(dimensions)) {
+    const { x, y, width, height } = dimensions
+    sX = sX + (x / canvasWidth * sW)
+    sY = sY + (y / canvasHeight * sH)
+    sW = (width / canvasWidth * sW)
+    sH = (height / canvasHeight * sH)
   }
 
   canvas.width = sW
@@ -192,8 +202,7 @@ export const getCircleOverlayProps = ({
   hmargin = 20,
   vmargin = 50,
 }) => {
-  const maxSize = Math.max(width, height)
-  const minSize = Math.min(width, height, maxSize * 2 / 3)
+  const minSize = Math.min(width, height)
   const circleR = Math.max(minSize / 2 - hmargin, 0)
   let circleX
   let circleY
@@ -226,10 +235,10 @@ export const getCircleOverlayProps = ({
 export const getRectOverlayProps = ({
   width,
   height,
-  ratio = CAMERA_RECT_RATIO.CARD,
+  ratio,
+  borderRadius = 0,
   hmargin = 20,
   vmargin = 50,
-  borderRadius = 10
 }) => {
   let rectWidth
   let rectHeight
@@ -240,11 +249,6 @@ export const getRectOverlayProps = ({
   if (height > width) {
     rectWidth = Math.max(width - (hmargin * 2), 0)
     rectHeight = rectWidth / ratio
-    const maxHeight = width * 2 / 3
-    if (rectHeight > maxHeight) {
-      rectHeight = maxHeight
-      rectWidth = rectHeight * ratio
-    }
     rectX = (width - rectWidth) / 2
     rectY = vmargin
     rectMargin = {
@@ -253,11 +257,6 @@ export const getRectOverlayProps = ({
   } else {
     rectHeight = Math.max(height - (hmargin * 2), 0)
     rectWidth = rectHeight * ratio
-    const maxWidth = width * 2 / 3
-    if (rectWidth > maxWidth) {
-      rectWidth = maxWidth
-      rectHeight = rectWidth / ratio
-    }
     rectX = vmargin
     rectY = (height - rectHeight) / 2
     rectMargin = {
@@ -285,15 +284,19 @@ export const getOverlayShapeProps = ({
   let overlayShapeProps
   switch (type) {
     case CAMERA_OVERLAY_SHAPE.CIRCLE:
-      overlayShapeProps = getCircleOverlayProps({
+      overlayShapeProps = getRectOverlayProps({
         width,
         height,
+        ratio: CAMERA_RECT_RATIO.SQUARE,
+        borderRadius: '50%',
       })
       break
     case CAMERA_OVERLAY_SHAPE.RECT:
       overlayShapeProps = getRectOverlayProps({
         width,
         height,
+        ratio: CAMERA_RECT_RATIO.CARD,
+        borderRadius: 10,
       })
       break
     default:

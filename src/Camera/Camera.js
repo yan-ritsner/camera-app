@@ -70,6 +70,19 @@ export const Camera = forwardRef((props, ref) => {
   const isCoverRatio = _isEqual(aspectRatio, CAMERA_ASPECT_RATIO.COVER)
   const isUserFacing = _isEqual(facingMode, CAMERA_FACING_MODE.USER)
 
+  const {
+    width: containerWidth,
+    height: containerHeight
+  } = useElementSize(container)
+  const {
+    overlayShapeProps = {},
+    overlayShapeMargin = {}
+  } = getOverlayShapeProps({
+    type: overlayShapeType,
+    width: containerWidth,
+    height: containerHeight
+  })
+
   const takePhoto = () => {
     if (notSupported ||
       permissionDenied ||
@@ -84,6 +97,7 @@ export const Camera = forwardRef((props, ref) => {
       container: container.current,
       canvas: canvas.current,
       mirorred: isUserFacing,
+      dimensions: overlayShapeProps,
       format,
       quality,
       filter,
@@ -148,17 +162,20 @@ export const Camera = forwardRef((props, ref) => {
   )
 
   const {
-    width: containerWidth,
-    height: containerHeight
-  } = useElementSize(container)
-  const {
-    overlayShapeProps = {},
-    overlayShapeMargin = {}
-  } = getOverlayShapeProps({
-    type: overlayShapeType,
-    width: containerWidth,
-    height: containerHeight
-  })
+    x: overlayShapeLeft,
+    y: overlayShapeTop,
+    width: overlayShapeWidth,
+    height: overlayShapeHeight,
+    rx: overlayShapeBorderRadius,
+  } = overlayShapeProps
+  const imageStyle = {
+    backgroundImage: `url(${image})`,
+    left: overlayShapeLeft,
+    top: overlayShapeTop,
+    width: overlayShapeWidth,
+    height: overlayShapeHeight,
+    borderRadius: overlayShapeBorderRadius,
+  }
 
   return (
     <div
@@ -182,8 +199,19 @@ export const Camera = forwardRef((props, ref) => {
         {image && (
           <div
             className='camera-image'
-            style={{ backgroundImage: `url(${image})` }}
-          />
+            style={imageStyle}
+          >
+            <a href={image} download="image.png" id="embedImage"
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 1000
+              }}>
+              Download
+            </a>
+          </div>
         )}
         {overlayVisible && (
           <CameraOverlay

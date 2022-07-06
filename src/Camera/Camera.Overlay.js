@@ -1,12 +1,9 @@
 import React from 'react'
 import classNames from 'classnames'
 
-import { CAMERA_OVERLAY_SHAPE } from './Camera.constants'
-
 const CameraOverlay = ({
   width,
   height,
-  shapeType,
   shapeProps,
   isFlashing,
   onStopFlashing,
@@ -16,43 +13,6 @@ const CameraOverlay = ({
     stroke: "#fff",
     fill: 'none',
   }
-  let shapeMask
-  let shapeBorder
-  switch (shapeType) {
-    case CAMERA_OVERLAY_SHAPE.CIRCLE: {
-      shapeMask = (
-        <circle
-          {...shapeProps}
-        />
-      )
-      shapeBorder = (
-        <circle
-          {...shapeProps}
-          {...borderProps}
-        />
-      )
-      break;
-    }
-    case CAMERA_OVERLAY_SHAPE.RECT: {
-      shapeMask = (
-        <rect
-          {...shapeProps}
-        />
-      )
-      shapeBorder = (
-        <rect
-          {...shapeProps}
-          {...borderProps}
-        />
-      )
-      break;
-    }
-    default: {
-      shapeMask = null
-      shapeBorder = null
-    }
-  }
-
 
   const classes = classNames(
     'camera-overlay',
@@ -80,7 +40,9 @@ const CameraOverlay = ({
             height={'100%'}
             fill="#fff"
           />
-          {shapeMask}
+          <rect
+            {...shapeProps}
+          />
         </mask>
       </defs>
       <rect
@@ -91,7 +53,10 @@ const CameraOverlay = ({
         mask="url(#mask)"
         fillOpacity="0.4"
       />
-      {shapeBorder}
+      <rect
+        {...shapeProps}
+        {...borderProps}
+      />
     </svg>
   )
 }
