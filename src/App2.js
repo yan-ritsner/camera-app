@@ -37,7 +37,7 @@ const App = () => {
         image={image}
         facingMode={facingMode}
         aspectRatio={CAMERA_ASPECT_RATIO.COVER}
-        filter={CAMERA_FILTERS.SHARPEN}
+        filter={CAMERA_FILTERS.NONE}
         overlayShapeType={overlayShape}
         overlayVisible
         shutterButtonVisible
