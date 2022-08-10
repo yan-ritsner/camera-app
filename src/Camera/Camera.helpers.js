@@ -16,12 +16,21 @@ export const initCameraStream = async ({
   facingMode,
   width,
   height,
+  cameraDeviceId,
   setStream,
+  setCameras,
   setNumberOfCameras,
+  setCameraCapabilities,
   setNotSupported,
   setPermissionDenied,
-  setCameraCapabilities,
 }) => {
+
+
+  const deviceConstrant = cameraDeviceId ? {
+    deviceId: {
+      exact: cameraDeviceId
+    }
+  } : {}
 
   const constraints = {
     audio: false,
@@ -29,14 +38,15 @@ export const initCameraStream = async ({
       facingMode,
       width: { ideal: width },
       height: { ideal: height },
-    },
+      ...deviceConstrant
+    }
   }
 
   const mediaDevices = navigator.mediaDevices
   if (mediaDevices && mediaDevices.getUserMedia) {
     try {
       const stream = await mediaDevices.getUserMedia(constraints)
-      handleSuccess(stream, setStream, setNumberOfCameras, setCameraCapabilities)
+      handleSuccess(stream, setStream, setCameras, setNumberOfCameras, setCameraCapabilities)
     }
     catch (err) {
       handleError(err, setNotSupported, setPermissionDenied)
@@ -54,7 +64,7 @@ export const initCameraStream = async ({
     getUserMedia(
       constraints,
       stream => {
-        handleSuccess(stream, setStream, setNumberOfCameras, setCameraCapabilities)
+        handleSuccess(stream, setStream, setCameras, setNumberOfCameras, setCameraCapabilities)
       },
       err => {
         handleError(err, setNotSupported, setPermissionDenied)
@@ -390,12 +400,14 @@ const applyConvolution = (
   return outputImageData
 }
 
-const handleSuccess = async (stream, setStream, setNumberOfCameras, setCameraCapabilities) => {
+const handleSuccess = async (stream, setStream, setCameras, setNumberOfCameras, setCameraCapabilities) => {
   const allDevices = await navigator.mediaDevices.enumerateDevices()
   const videoDevices = _filter(allDevices, device => _isEqual(device.kind, 'videoinput'))
   const capabilities = getCameraCapabilities(stream)
 
   printCameraSettings(stream)
+
+  setCameras(videoDevices)
   setNumberOfCameras(_size(videoDevices))
   setCameraCapabilities(capabilities)
   setStream(stream)

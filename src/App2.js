@@ -10,7 +10,7 @@ import {
 
 const App = () => {
   const [image, setImage] = useState('')
-  const [facingMode, setFacingMode] = useState(CAMERA_FACING_MODE.USER)
+  const [facingMode, setFacingMode] = useState(CAMERA_FACING_MODE.ENVIRONMENT)
 
 
   const cameraRef = useRef();
@@ -23,9 +23,12 @@ const App = () => {
     )
   }
 
-
   const copySettings = () => {
     cameraRef.current.copySettings()
+  }
+
+  const switchCamera = () => {
+    cameraRef.current.switchCamera()
   }
 
   const onTakePhoto = (photo) => {
@@ -55,19 +58,27 @@ const App = () => {
         onTakePhoto={onTakePhoto}
         onPrimaryButtonClick={onRetakePhoto}
       />
-      <button
-        style={{ position: 'absolute' }}
-        type="button"
-        onClick={toggleFacingMode}>
-        Change Facing Mode
-      </button>
 
-      <button
-        style={{ position: 'absolute', right: 0 }}
-        type="button"
-        onClick={copySettings}>
-        Copy Settings
-      </button>
+      <div style={{ position: 'absolute', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+        <button
+          type="button"
+          onClick={toggleFacingMode}>
+          Change Facing Mode
+        </button>
+
+        <button
+          type="button"
+          onClick={switchCamera}>
+          Switch Camera
+        </button>
+
+        <button
+          type="button"
+          onClick={copySettings}>
+          Copy Settings
+        </button>
+      </div>
+
     </>
   )
 }

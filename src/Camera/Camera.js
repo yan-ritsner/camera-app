@@ -7,6 +7,12 @@ import React, {
 } from 'react'
 import classNames from 'classnames'
 import _isEqual from 'lodash/isEqual'
+import _filter from 'lodash/filter'
+import _findIndex from 'lodash/findIndex'
+import _size from 'lodash/size'
+import _get from 'lodash/get'
+import _includes from 'lodash/includes'
+
 
 import {
   CAMERA_ASPECT_RATIO,
@@ -38,7 +44,7 @@ export const Camera = forwardRef((props, ref) => {
     height = CAMERA_DEFAULT_HEIGHT,
     format = CAMERA_DEFAULT_FORMAT,
     quality = CAMERA_DEFAULT_QUALITY,
-    filter = CAMERA_FILTERS.SHARPEN,
+    filter = CAMERA_FILTERS.NONE,
     overlayShapeType = CAMERA_OVERLAY_SHAPE.NONE,
     overlayVisible = false,
     icon = '',
@@ -50,6 +56,7 @@ export const Camera = forwardRef((props, ref) => {
     secondaryButtonVisible = false,
     primaryButtonText = '',
     secondaryButtonText = '',
+    camerasCallback = () => { },
     numberOfCamerasCallback = () => { },
     cameraCapabilitiesCallback = () => { },
     onTakePhoto = () => { },
@@ -62,10 +69,12 @@ export const Camera = forwardRef((props, ref) => {
   const container = useRef(null)
 
   const [stream, setStream] = useState(null)
+  const [cameras, setCameras] = useState([])
+  const [cameraDeviceId, setCameraDeviceId] = useState()
   const [numberOfCameras, setNumberOfCameras] = useState(0)
+  const [cameraCapabilities, setCameraCapabilities] = useState({})
   const [notSupported, setNotSupported] = useState(false)
   const [permissionDenied, setPermissionDenied] = useState(false)
-  const [cameraCapabilities, setCameraCapabilities] = useState({})
   const [isFlashing, setIsFlashing] = useState(false)
 
   const isCoverRatio = _isEqual(aspectRatio, CAMERA_ASPECT_RATIO.COVER)
@@ -111,16 +120,43 @@ export const Camera = forwardRef((props, ref) => {
     setCameraSettings(stream, settings)
   }
 
-
   const copySettings = () => {
     copySettingsToClipboard(stream)
+  }
+
+  const switchCamera = () => {
+    const { deviceId: currDeviceId } = cameraCapabilities
+    if (!currDeviceId) return
+
+    const sameFacingModeCameras = _filter(
+      cameras,
+      (camera) => _includes(camera.getCapabilities().facingMode, facingMode),
+    )
+    const currCameraIndex = _findIndex(
+      sameFacingModeCameras,
+      ({ deviceId }) => _isEqual(deviceId, currDeviceId)
+    )
+
+    if (currCameraIndex < 0) return
+    const nextCameraIndex =
+      currCameraIndex + 1 <= _size(sameFacingModeCameras) - 1
+        ? currCameraIndex + 1
+        : 0
+
+    const { deviceId: nextDeviceId } = _get(sameFacingModeCameras, nextCameraIndex, {})
+    setCameraDeviceId(nextDeviceId)
   }
 
   useImperativeHandle(ref, () => ({
     takePhoto,
     setSettings,
-    copySettings
+    copySettings,
+    switchCamera,
   }))
+
+  useEffect(() => {
+    camerasCallback(cameras)
+  }, [cameras, camerasCallback])
 
   useEffect(() => {
     numberOfCamerasCallback(numberOfCameras)
@@ -139,13 +175,15 @@ export const Camera = forwardRef((props, ref) => {
       facingMode,
       width,
       height,
+      cameraDeviceId,
       setStream,
+      setCameras,
       setNumberOfCameras,
+      setCameraCapabilities,
       setNotSupported,
       setPermissionDenied,
-      setCameraCapabilities,
     })
-  }, [facingMode, width, height])
+  }, [facingMode, width, height, cameraDeviceId])
 
   useEffect(() => {
     if (stream && player && player.current) {
