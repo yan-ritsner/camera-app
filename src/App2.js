@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 
 import { Camera } from "./Camera"
 import {
@@ -12,12 +12,20 @@ const App = () => {
   const [image, setImage] = useState('')
   const [facingMode, setFacingMode] = useState(CAMERA_FACING_MODE.USER)
 
+
+  const cameraRef = useRef();
+
   const toggleFacingMode = () => {
     setFacingMode(
       facingMode === CAMERA_FACING_MODE.USER
         ? CAMERA_FACING_MODE.ENVIRONMENT
         : CAMERA_FACING_MODE.USER
     )
+  }
+
+
+  const copySettings = () => {
+    cameraRef.current.copySettings()
   }
 
   const onTakePhoto = (photo) => {
@@ -34,6 +42,7 @@ const App = () => {
   return (
     <>
       <Camera
+        ref={cameraRef}
         image={image}
         facingMode={facingMode}
         aspectRatio={CAMERA_ASPECT_RATIO.COVER}
@@ -51,6 +60,13 @@ const App = () => {
         type="button"
         onClick={toggleFacingMode}>
         Change Facing Mode
+      </button>
+
+      <button
+        style={{ position: 'absolute', right: 0 }}
+        type="button"
+        onClick={copySettings}>
+        Copy Settings
       </button>
     </>
   )

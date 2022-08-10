@@ -24,6 +24,7 @@ import {
   takeCameraPhoto,
   setCameraSettings,
   getOverlayShapeProps,
+  copySettingsToClipboard,
 } from './Camera.helpers'
 import './Camera.css'
 import CameraOverlay from './Camera.Overlay'
@@ -110,9 +111,15 @@ export const Camera = forwardRef((props, ref) => {
     setCameraSettings(stream, settings)
   }
 
+
+  const copySettings = () => {
+    copySettingsToClipboard(stream)
+  }
+
   useImperativeHandle(ref, () => ({
     takePhoto,
     setSettings,
+    copySettings
   }))
 
   useEffect(() => {

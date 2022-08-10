@@ -177,6 +177,32 @@ export const printCameraSettings = (stream) => {
   console.log(settings)
 }
 
+
+export const copySettingsToClipboard = (stream) => {
+  const track = getCameraTrack(stream)
+  if (!track) return
+
+  const capabilities = track.getCapabilities()
+  const constraints = track.getConstraints()
+  const settings = track.getSettings()
+
+  const data = {
+    capabilities,
+    constraints,
+    settings
+  }
+
+  const text = JSON.stringify(data)
+
+  if (!navigator.clipboard) return
+
+  navigator.clipboard.writeText(text).then(function () {
+    alert('Copied to clipboard')
+  }, function (err) {
+    console.error('Async: Could not copy text: ', err);
+  });
+}
+
 export const applyCameraFilter = (
   sourceImageData,
   outputImageData,
