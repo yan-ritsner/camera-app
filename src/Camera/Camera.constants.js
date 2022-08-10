@@ -28,8 +28,8 @@ export const CAMERA_FILTERS = {
   SHARPEN: 'sharpen'
 }
 
-export const CAMERA_DEFAULT_WIDTH = 2880
-export const CAMERA_DEFAULT_HEIGHT = 1620
+export const CAMERA_DEFAULT_WIDTH = 1920
+export const CAMERA_DEFAULT_HEIGHT = 1280
 
 export const CAMERA_DEFAULT_FORMAT = 'image/jpeg'
 export const CAMERA_DEFAULT_QUALITY = 1
