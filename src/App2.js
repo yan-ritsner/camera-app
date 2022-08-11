@@ -11,8 +11,6 @@ import {
 const App = () => {
   const [image, setImage] = useState('')
   const [facingMode, setFacingMode] = useState(CAMERA_FACING_MODE.ENVIRONMENT)
-
-
   const cameraRef = useRef();
 
   const toggleFacingMode = () => {
@@ -59,7 +57,15 @@ const App = () => {
         onPrimaryButtonClick={onRetakePhoto}
       />
 
-      <div style={{ position: 'absolute', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+      <div style={{
+        position: 'absolute',
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        padding: '5px',
+        boxSizing: 'border-box'
+      }}>
         <button
           type="button"
           onClick={toggleFacingMode}>

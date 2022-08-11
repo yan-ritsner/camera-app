@@ -4,7 +4,6 @@ import React, {
   useRef,
   useImperativeHandle,
   forwardRef,
-  useCallback,
 } from 'react'
 import classNames from 'classnames'
 import _isEqual from 'lodash/isEqual'
@@ -124,29 +123,6 @@ export const Camera = forwardRef((props, ref) => {
     copySettingsToClipboard(stream)
   }
 
-  const restartStream = useCallback((deviceId) => {
-    setStream((stream) => {
-      stopCameraStream(stream)
-      if (player && player.current) {
-        player.current.srcObject = null
-      }
-      return null
-    })
-
-    initCameraStream({
-      facingMode,
-      width,
-      height,
-      deviceId,
-      setStream,
-      setCameras,
-      setNumberOfCameras,
-      setCameraCapabilities,
-      setNotSupported,
-      setPermissionDenied,
-    })
-  }, [facingMode, width, height])
-
   const switchCamera = () => {
     const { deviceId: currDeviceId } = cameraCapabilities
     if (!currDeviceId) return
@@ -176,7 +152,24 @@ export const Camera = forwardRef((props, ref) => {
     } = _get(sameFacingModeCameras, nextCameraIndex, {})
     if (_isEqual(nextDeviceId, currDeviceId) || !nextDeviceId) return
 
-    restartStream(nextDeviceId)
+    stopCameraStream(stream)
+    if (player && player.current) {
+      player.current.srcObject = null
+    }
+    setStream(null)
+
+    initCameraStream({
+      facingMode,
+      width,
+      height,
+      deviceId: nextDeviceId,
+      setStream,
+      setCameras,
+      setNumberOfCameras,
+      setCameraCapabilities,
+      setNotSupported,
+      setPermissionDenied,
+    })
   }
 
   useImperativeHandle(ref, () => ({
@@ -199,8 +192,26 @@ export const Camera = forwardRef((props, ref) => {
   }, [cameraCapabilities, cameraCapabilitiesCallback])
 
   useEffect(() => {
-    restartStream()
-  }, [restartStream])
+    setStream((stream) => {
+      stopCameraStream(stream)
+      if (player && player.current) {
+        player.current.srcObject = null
+      }
+      return null
+    })
+
+    initCameraStream({
+      facingMode,
+      width,
+      height,
+      setStream,
+      setCameras,
+      setNumberOfCameras,
+      setCameraCapabilities,
+      setNotSupported,
+      setPermissionDenied,
+    })
+  }, [facingMode, width, height])
 
   useEffect(() => {
     if (player && player.current) {
