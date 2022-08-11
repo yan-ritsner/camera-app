@@ -4,6 +4,7 @@ import React, {
   useRef,
   useImperativeHandle,
   forwardRef,
+  useCallback,
 } from 'react'
 import classNames from 'classnames'
 import _isEqual from 'lodash/isEqual'
@@ -70,7 +71,6 @@ export const Camera = forwardRef((props, ref) => {
 
   const [stream, setStream] = useState(null)
   const [cameras, setCameras] = useState([])
-  const [cameraDeviceId, setCameraDeviceId] = useState()
   const [numberOfCameras, setNumberOfCameras] = useState(0)
   const [cameraCapabilities, setCameraCapabilities] = useState({})
   const [notSupported, setNotSupported] = useState(false)
@@ -124,13 +124,41 @@ export const Camera = forwardRef((props, ref) => {
     copySettingsToClipboard(stream)
   }
 
+  const restartStream = useCallback((deviceId) => {
+    setStream((stream) => {
+      stopCameraStream(stream)
+      if (player && player.current) {
+        player.current.srcObject = null
+      }
+      return null
+    })
+
+    initCameraStream({
+      facingMode,
+      width,
+      height,
+      deviceId,
+      setStream,
+      setCameras,
+      setNumberOfCameras,
+      setCameraCapabilities,
+      setNotSupported,
+      setPermissionDenied,
+    })
+  }, [facingMode, width, height])
+
   const switchCamera = () => {
     const { deviceId: currDeviceId } = cameraCapabilities
     if (!currDeviceId) return
 
     const sameFacingModeCameras = _filter(
       cameras,
-      (camera) => _includes(camera.getCapabilities().facingMode, facingMode),
+      (camera) => {
+        const {
+          facingMode: cameraFacingMode
+        } = camera.getCapabilities()
+        return _includes(cameraFacingMode, facingMode)
+      },
     )
     const currCameraIndex = _findIndex(
       sameFacingModeCameras,
@@ -143,8 +171,12 @@ export const Camera = forwardRef((props, ref) => {
         ? currCameraIndex + 1
         : 0
 
-    const { deviceId: nextDeviceId } = _get(sameFacingModeCameras, nextCameraIndex, {})
-    setCameraDeviceId(nextDeviceId)
+    const {
+      deviceId: nextDeviceId
+    } = _get(sameFacingModeCameras, nextCameraIndex, {})
+    if (_isEqual(nextDeviceId, currDeviceId) || !nextDeviceId) return
+
+    restartStream(nextDeviceId)
   }
 
   useImperativeHandle(ref, () => ({
@@ -167,32 +199,17 @@ export const Camera = forwardRef((props, ref) => {
   }, [cameraCapabilities, cameraCapabilitiesCallback])
 
   useEffect(() => {
-    setStream((stream) => {
-      stopCameraStream(stream)
-      return null
-    })
-    initCameraStream({
-      facingMode,
-      width,
-      height,
-      cameraDeviceId,
-      setStream,
-      setCameras,
-      setNumberOfCameras,
-      setCameraCapabilities,
-      setNotSupported,
-      setPermissionDenied,
-    })
-  }, [facingMode, width, height, cameraDeviceId])
+    restartStream()
+  }, [restartStream])
 
   useEffect(() => {
-    if (stream && player && player.current) {
+    if (player && player.current) {
       player.current.srcObject = stream
     }
     return () => {
       stopCameraStream(stream)
     }
-  }, [stream])
+  }, [stream, facingMode, width, height])
 
   const containerClasses = classNames(
     'camera-container',

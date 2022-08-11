@@ -16,7 +16,7 @@ export const initCameraStream = async ({
   facingMode,
   width,
   height,
-  cameraDeviceId,
+  deviceId,
   setStream,
   setCameras,
   setNumberOfCameras,
@@ -26,9 +26,9 @@ export const initCameraStream = async ({
 }) => {
 
 
-  const deviceConstrant = cameraDeviceId ? {
+  const deviceConstraints = deviceId ? {
     deviceId: {
-      exact: cameraDeviceId
+      exact: deviceId
     }
   } : {}
 
@@ -38,7 +38,7 @@ export const initCameraStream = async ({
       facingMode,
       width: { ideal: width },
       height: { ideal: height },
-      ...deviceConstrant
+      ...deviceConstraints
     }
   }
 
