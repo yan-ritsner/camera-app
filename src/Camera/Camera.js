@@ -69,6 +69,7 @@ export const Camera = forwardRef((props, ref) => {
   const container = useRef(null)
 
   const [stream, setStream] = useState(null)
+  const [deviceId, setDeviceId] = useState(null)
   const [cameras, setCameras] = useState([])
   const [numberOfCameras, setNumberOfCameras] = useState(0)
   const [cameraCapabilities, setCameraCapabilities] = useState({})
@@ -127,49 +128,33 @@ export const Camera = forwardRef((props, ref) => {
     const { deviceId: currDeviceId } = cameraCapabilities
     if (!currDeviceId) return
 
-    const sameFacingModeCameras = _filter(
+    const filteredCameras = _filter(
       cameras,
       (camera) => {
+        if (!camera.getCapabilities) return true
         const {
           facingMode: cameraFacingMode
         } = camera.getCapabilities()
         return _includes(cameraFacingMode, facingMode)
       },
     )
+
     const currCameraIndex = _findIndex(
-      sameFacingModeCameras,
+      filteredCameras,
       ({ deviceId }) => _isEqual(deviceId, currDeviceId)
     )
-
     if (currCameraIndex < 0) return
     const nextCameraIndex =
-      currCameraIndex + 1 <= _size(sameFacingModeCameras) - 1
+      currCameraIndex + 1 <= _size(filteredCameras) - 1
         ? currCameraIndex + 1
         : 0
 
     const {
       deviceId: nextDeviceId
-    } = _get(sameFacingModeCameras, nextCameraIndex, {})
+    } = _get(filteredCameras, nextCameraIndex, {})
     if (_isEqual(nextDeviceId, currDeviceId) || !nextDeviceId) return
 
-    stopCameraStream(stream)
-    if (player && player.current) {
-      player.current.srcObject = null
-    }
-    setStream(null)
-
-    initCameraStream({
-      facingMode,
-      width,
-      height,
-      deviceId: nextDeviceId,
-      setStream,
-      setCameras,
-      setNumberOfCameras,
-      setCameraCapabilities,
-      setNotSupported,
-      setPermissionDenied,
-    })
+    setDeviceId(nextDeviceId)
   }
 
   useImperativeHandle(ref, () => ({
@@ -192,6 +177,10 @@ export const Camera = forwardRef((props, ref) => {
   }, [cameraCapabilities, cameraCapabilitiesCallback])
 
   useEffect(() => {
+    setDeviceId(null)
+  }, [facingMode])
+
+  useEffect(() => {
     setStream((stream) => {
       stopCameraStream(stream)
       if (player && player.current) {
@@ -204,6 +193,7 @@ export const Camera = forwardRef((props, ref) => {
       facingMode,
       width,
       height,
+      deviceId,
       setStream,
       setCameras,
       setNumberOfCameras,
@@ -211,7 +201,7 @@ export const Camera = forwardRef((props, ref) => {
       setNotSupported,
       setPermissionDenied,
     })
-  }, [facingMode, width, height])
+  }, [facingMode, width, height, deviceId])
 
   useEffect(() => {
     if (player && player.current) {
