@@ -24,8 +24,6 @@ export const initCameraStream = async ({
   setNotSupported,
   setPermissionDenied,
 }) => {
-
-
   const deviceConstraints = deviceId ? {
     deviceId: {
       exact: deviceId
@@ -46,7 +44,13 @@ export const initCameraStream = async ({
   if (mediaDevices && mediaDevices.getUserMedia) {
     try {
       const stream = await mediaDevices.getUserMedia(constraints)
-      handleSuccess(stream, setStream, setCameras, setNumberOfCameras, setCameraCapabilities)
+      handleSuccess(
+        stream,
+        setStream,
+        setCameras,
+        setNumberOfCameras,
+        setCameraCapabilities
+      )
     }
     catch (err) {
       handleError(err, setNotSupported, setPermissionDenied)
@@ -64,7 +68,13 @@ export const initCameraStream = async ({
     getUserMedia(
       constraints,
       stream => {
-        handleSuccess(stream, setStream, setCameras, setNumberOfCameras, setCameraCapabilities)
+        handleSuccess(
+          stream,
+          setStream,
+          setCameras,
+          setNumberOfCameras,
+          setCameraCapabilities
+        )
       },
       err => {
         handleError(err, setNotSupported, setPermissionDenied)
