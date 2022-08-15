@@ -207,7 +207,6 @@ export const Camera = forwardRef((props, ref) => {
           setNotSupported,
           setPermissionDenied,
         })
-
         break;
       case CAMERA_STATE.STARTING:
         if (stream) {
@@ -217,9 +216,6 @@ export const Camera = forwardRef((props, ref) => {
       case CAMERA_STATE.RESTART:
       case CAMERA_STATE.STOP:
         stopCameraStream(stream)
-        if (player && player.current) {
-          player.current.srcObject = null
-        }
         setStream(null)
         setCameraState(
           _isEqual(cameraState, CAMERA_STATE.RESTART)

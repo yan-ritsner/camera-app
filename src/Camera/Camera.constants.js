@@ -34,7 +34,6 @@ export const CAMERA_DEFAULT_HEIGHT = 1280
 export const CAMERA_DEFAULT_FORMAT = 'image/jpeg'
 export const CAMERA_DEFAULT_QUALITY = 1
 
-
 export const CAMERA_STATE = {
   START: 0,
   STARTING: 1,
