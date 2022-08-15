@@ -23,6 +23,7 @@ import {
   CAMERA_DEFAULT_QUALITY,
   CAMERA_FILTERS,
   CAMERA_OVERLAY_SHAPE,
+  CAMERA_STATE,
 } from './Camera.constants'
 import {
   initCameraStream,
@@ -70,6 +71,7 @@ export const Camera = forwardRef((props, ref) => {
 
   const [stream, setStream] = useState(null)
   const [deviceId, setDeviceId] = useState(null)
+  const [cameraState, setCameraState] = useState(CAMERA_STATE.START)
   const [cameras, setCameras] = useState([])
   const [numberOfCameras, setNumberOfCameras] = useState(0)
   const [cameraCapabilities, setCameraCapabilities] = useState({})
@@ -155,6 +157,7 @@ export const Camera = forwardRef((props, ref) => {
     if (_isEqual(nextDeviceId, currDeviceId) || !nextDeviceId) return
 
     setDeviceId(nextDeviceId)
+    setCameraState(CAMERA_STATE.RESTART)
   }
 
   useImperativeHandle(ref, () => ({
@@ -178,39 +181,56 @@ export const Camera = forwardRef((props, ref) => {
 
   useEffect(() => {
     setDeviceId(null)
+    setCameraState(CAMERA_STATE.RESTART)
   }, [facingMode])
 
   useEffect(() => {
-    setStream((stream) => {
-      stopCameraStream(stream)
-      if (player && player.current) {
-        player.current.srcObject = null
-      }
-      return null
-    })
-
-    initCameraStream({
-      facingMode,
-      width,
-      height,
-      deviceId,
-      setStream,
-      setCameras,
-      setNumberOfCameras,
-      setCameraCapabilities,
-      setNotSupported,
-      setPermissionDenied,
-    })
-  }, [facingMode, width, height, deviceId])
+    return () => setCameraState(CAMERA_STATE.STOP)
+  }, [])
 
   useEffect(() => {
     if (player && player.current) {
       player.current.srcObject = stream
     }
-    return () => {
-      stopCameraStream(stream)
+    switch (cameraState) {
+      case CAMERA_STATE.START:
+        setCameraState(CAMERA_STATE.STARTING)
+        initCameraStream({
+          facingMode,
+          width,
+          height,
+          deviceId,
+          setStream,
+          setCameras,
+          setNumberOfCameras,
+          setCameraCapabilities,
+          setNotSupported,
+          setPermissionDenied,
+        })
+
+        break;
+      case CAMERA_STATE.STARTING:
+        if (stream) {
+          setCameraState(CAMERA_STATE.STARTED)
+        }
+        break;
+      case CAMERA_STATE.RESTART:
+      case CAMERA_STATE.STOP:
+        stopCameraStream(stream)
+        if (player && player.current) {
+          player.current.srcObject = null
+        }
+        setStream(null)
+        setCameraState(
+          _isEqual(cameraState, CAMERA_STATE.RESTART)
+            ? CAMERA_STATE.START
+            : CAMERA_STATE.STOPPED
+        )
+        break;
+      default:
+        break;
     }
-  }, [stream, facingMode, width, height])
+  }, [cameraState, stream, facingMode, width, height, deviceId])
 
   const containerClasses = classNames(
     'camera-container',
