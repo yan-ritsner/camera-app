@@ -181,7 +181,11 @@ export const Camera = forwardRef((props, ref) => {
 
   useEffect(() => {
     setDeviceId(null)
-    setCameraState(CAMERA_STATE.RESTART)
+    setCameraState(state => _isEqual(state,
+      CAMERA_STATE.STARTED) ?
+      CAMERA_STATE.RESTART
+      : state
+    )
   }, [facingMode])
 
   useEffect(() => {
@@ -194,34 +198,42 @@ export const Camera = forwardRef((props, ref) => {
     }
     switch (cameraState) {
       case CAMERA_STATE.START:
+        console.log("START")
         setCameraState(CAMERA_STATE.STARTING)
-        initCameraStream({
-          facingMode,
-          width,
-          height,
-          deviceId,
-          setStream,
-          setCameras,
-          setNumberOfCameras,
-          setCameraCapabilities,
-          setNotSupported,
-          setPermissionDenied,
-        })
         break;
       case CAMERA_STATE.STARTING:
         if (stream) {
+          console.log("STARTED")
           setCameraState(CAMERA_STATE.STARTED)
+        } else {
+          console.log("STARTING")
+          initCameraStream({
+            facingMode,
+            width,
+            height,
+            deviceId,
+            setStream,
+            setCameras,
+            setNumberOfCameras,
+            setCameraCapabilities,
+            setNotSupported,
+            setPermissionDenied,
+          })
         }
         break;
       case CAMERA_STATE.RESTART:
-        stopCameraStream(stream)
-        setStream(null)
-        setCameraState(CAMERA_STATE.START)
-        break;
       case CAMERA_STATE.STOP:
+        console.log("RESTART/STOP")
         stopCameraStream(stream)
         setStream(null)
-        setCameraState(CAMERA_STATE.STOPPED)
+        setCameraState(
+          _isEqual(cameraState, CAMERA_STATE.RESTART)
+            ? CAMERA_STATE.START
+            : CAMERA_STATE.STOP
+        )
+        break;
+      case CAMERA_STATE.STOPPED:
+        console.log("STOPPED")
         break;
       default:
         break;
