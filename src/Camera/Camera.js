@@ -214,14 +214,14 @@ export const Camera = forwardRef((props, ref) => {
         }
         break;
       case CAMERA_STATE.RESTART:
+        stopCameraStream(stream)
+        setStream(null)
+        setCameraState(CAMERA_STATE.START)
+        break;
       case CAMERA_STATE.STOP:
         stopCameraStream(stream)
         setStream(null)
-        setCameraState(
-          _isEqual(cameraState, CAMERA_STATE.RESTART)
-            ? CAMERA_STATE.START
-            : CAMERA_STATE.STOPPED
-        )
+        setCameraState(CAMERA_STATE.STOPPED)
         break;
       default:
         break;
