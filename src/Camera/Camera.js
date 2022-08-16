@@ -7,12 +7,6 @@ import React, {
 } from 'react'
 import classNames from 'classnames'
 import _isEqual from 'lodash/isEqual'
-import _filter from 'lodash/filter'
-import _findIndex from 'lodash/findIndex'
-import _size from 'lodash/size'
-import _get from 'lodash/get'
-import _includes from 'lodash/includes'
-
 
 import {
   CAMERA_ASPECT_RATIO,
@@ -28,6 +22,7 @@ import {
 import {
   initCameraStream,
   stopCameraStream,
+  switchCameraStream,
   takeCameraPhoto,
   setCameraSettings,
   getOverlayShapeProps,
@@ -71,7 +66,7 @@ export const Camera = forwardRef((props, ref) => {
 
   const [stream, setStream] = useState(null)
   const [deviceId, setDeviceId] = useState(null)
-  const [cameraState, setCameraState] = useState(CAMERA_STATE.START)
+  const [cameraState, setCameraState] = useState()
   const [cameras, setCameras] = useState([])
   const [numberOfCameras, setNumberOfCameras] = useState(0)
   const [cameraCapabilities, setCameraCapabilities] = useState({})
@@ -127,37 +122,15 @@ export const Camera = forwardRef((props, ref) => {
   }
 
   const switchCamera = () => {
-    const { deviceId: currDeviceId } = cameraCapabilities
-    if (!currDeviceId) return
-
-    const filteredCameras = _filter(
+    const nextDeviceId = switchCameraStream(
       cameras,
-      (camera) => {
-        if (!camera.getCapabilities) return true
-        const {
-          facingMode: cameraFacingMode
-        } = camera.getCapabilities()
-        return _includes(cameraFacingMode, facingMode)
-      },
+      cameraCapabilities, 
+      facingMode
     )
-
-    const currCameraIndex = _findIndex(
-      filteredCameras,
-      ({ deviceId }) => _isEqual(deviceId, currDeviceId)
-    )
-    if (currCameraIndex < 0) return
-    const nextCameraIndex =
-      currCameraIndex + 1 <= _size(filteredCameras) - 1
-        ? currCameraIndex + 1
-        : 0
-
-    const {
-      deviceId: nextDeviceId
-    } = _get(filteredCameras, nextCameraIndex, {})
-    if (_isEqual(nextDeviceId, currDeviceId) || !nextDeviceId) return
-
-    setDeviceId(nextDeviceId)
-    setCameraState(CAMERA_STATE.RESTART)
+    if (nextDeviceId) {
+      setDeviceId(nextDeviceId)
+      setCameraState(CAMERA_STATE.RESTART)
+    }
   }
 
   useImperativeHandle(ref, () => ({
@@ -181,14 +154,15 @@ export const Camera = forwardRef((props, ref) => {
 
   useEffect(() => {
     setDeviceId(null)
-    setCameraState(state => _isEqual(state,
-      CAMERA_STATE.STARTED) ?
-      CAMERA_STATE.RESTART
-      : state
+    setCameraState(state =>
+      !_isEqual(state, CAMERA_STATE.START)
+        ? CAMERA_STATE.RESTART
+        : state
     )
   }, [facingMode])
 
   useEffect(() => {
+    setCameraState(CAMERA_STATE.START)
     return () => setCameraState(CAMERA_STATE.STOP)
   }, [])
 
@@ -200,6 +174,18 @@ export const Camera = forwardRef((props, ref) => {
       case CAMERA_STATE.START:
         console.log("START")
         setCameraState(CAMERA_STATE.STARTING)
+        initCameraStream({
+          facingMode,
+          width,
+          height,
+          deviceId,
+          setStream,
+          setCameras,
+          setNumberOfCameras,
+          setCameraCapabilities,
+          setNotSupported,
+          setPermissionDenied,
+        })
         break;
       case CAMERA_STATE.STARTING:
         if (stream) {
@@ -207,30 +193,19 @@ export const Camera = forwardRef((props, ref) => {
           setCameraState(CAMERA_STATE.STARTED)
         } else {
           console.log("STARTING")
-          initCameraStream({
-            facingMode,
-            width,
-            height,
-            deviceId,
-            setStream,
-            setCameras,
-            setNumberOfCameras,
-            setCameraCapabilities,
-            setNotSupported,
-            setPermissionDenied,
-          })
         }
         break;
       case CAMERA_STATE.RESTART:
-      case CAMERA_STATE.STOP:
-        console.log("RESTART/STOP")
+        console.log("RESTART")
         stopCameraStream(stream)
         setStream(null)
-        setCameraState(
-          _isEqual(cameraState, CAMERA_STATE.RESTART)
-            ? CAMERA_STATE.START
-            : CAMERA_STATE.STOP
-        )
+        setCameraState(CAMERA_STATE.START)
+        break;
+      case CAMERA_STATE.STOP:
+        console.log("STOP")
+        stopCameraStream(stream)
+        setStream(null)
+        setCameraState(CAMERA_STATE.STOPPED)
         break;
       case CAMERA_STATE.STOPPED:
         console.log("STOPPED")

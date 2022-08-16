@@ -3,6 +3,9 @@ import _isEqual from 'lodash/isEqual'
 import _size from 'lodash/size'
 import _forEach from 'lodash/forEach'
 import _isEmpty from 'lodash/isEmpty'
+import _includes from 'lodash/includes'
+import _findIndex from 'lodash/findIndex'
+import _get from 'lodash/get'
 
 import {
   CAMERA_DEFAULT_WIDTH,
@@ -24,6 +27,7 @@ export const initCameraStream = async ({
   setNotSupported,
   setPermissionDenied,
 }) => {
+  console.log('INIT')
   const deviceConstraints = deviceId ? {
     deviceId: {
       exact: deviceId
@@ -92,6 +96,36 @@ export const stopCameraStream = (stream) => {
   _forEach(tracks, track => {
     track.stop()
   })
+}
+
+export const switchCameraStream = (cameras, cameraCapabilities, facingMode) => {
+  const { deviceId: currDeviceId } = cameraCapabilities
+  if (!currDeviceId) return
+
+  const filteredCameras = _filter(
+    cameras,
+    (camera) => {
+      if (!camera.getCapabilities) return true
+      const { facingMode: cameraFacingMode } = camera.getCapabilities()
+      return _includes(cameraFacingMode, facingMode)
+    },
+  )
+
+  const currCameraIndex = _findIndex(
+    filteredCameras,
+    ({ deviceId }) => _isEqual(deviceId, currDeviceId)
+  )
+  if (currCameraIndex < 0) return
+
+  let nextCameraIndex = currCameraIndex + 1
+  if (nextCameraIndex > _size(filteredCameras) - 1) {
+    nextCameraIndex = 0
+  }
+
+  const { deviceId: nextDeviceId } = _get(filteredCameras, nextCameraIndex, {})
+  if (_isEqual(nextDeviceId, currDeviceId) || !nextDeviceId) return
+
+  return nextDeviceId
 }
 
 export const takeCameraPhoto = ({
@@ -415,7 +449,7 @@ const handleSuccess = async (stream, setStream, setCameras, setNumberOfCameras, 
   const videoDevices = _filter(allDevices, device => _isEqual(device.kind, 'videoinput'))
   const capabilities = getCameraCapabilities(stream)
 
-  printCameraSettings(stream)
+  // printCameraSettings(stream)
 
   setCameras(videoDevices)
   setNumberOfCameras(_size(videoDevices))
