@@ -31,6 +31,7 @@ import {
   getOverlayShapeProps,
   copySettingsToClipboard,
   getCameras,
+  getFacingModeCameras,
 } from './Camera.helpers'
 import './Camera.css'
 import CameraOverlay from './Camera.Overlay'
@@ -144,8 +145,12 @@ export const Camera = forwardRef((props, ref) => {
   }, [stream])
 
   const switchCamera = useCallback(() => {
-    const nextDeviceId = getNextCameraDeviceId({
+    const facingModeCamera = getFacingModeCameras({
       cameras,
+      facingMode
+    })
+    const nextDeviceId = getNextCameraDeviceId({
+      cameras: facingModeCamera,
       cameraCapabilities,
       facingMode
     })
@@ -159,15 +164,25 @@ export const Camera = forwardRef((props, ref) => {
     if (checkBestQualityCamera({
       cameraCapabilities,
       facingMode
-    })) {
-      return
-    }
-    const allCameras = _size(cameras)
-    if (allCameras > 1 && switchedCameras < allCameras) {
+    })) return
+
+    const facingModeCameras = getFacingModeCameras({
+      cameras,
+      facingMode
+    })
+
+    const numberOfCameras = _size(facingModeCameras)
+    if (numberOfCameras > 1 && switchedCameras < numberOfCameras) {
       switchCamera()
       setSwitchedCameras(value => value + 1)
     }
-  }, [cameras, cameraCapabilities, facingMode, switchedCameras, switchCamera])
+  }, [
+    cameras,
+    cameraCapabilities,
+    facingMode,
+    switchedCameras,
+    switchCamera
+  ])
 
   useImperativeHandle(ref, () => ({
     takePhoto,
@@ -199,6 +214,7 @@ export const Camera = forwardRef((props, ref) => {
 
   useEffect(() => {
     setDeviceId(null)
+    setSwitchedCameras(0)
     setCameraState(state =>
       !_isEqual(state, CAMERA_STATE.START)
         ? CAMERA_STATE.RESTART
@@ -221,6 +237,7 @@ export const Camera = forwardRef((props, ref) => {
         }
         break;
       case CAMERA_STATE.STARTED:
+        adjustCamera()
         console.log("STARTED")
         break;
       case CAMERA_STATE.RESTART:
@@ -244,6 +261,7 @@ export const Camera = forwardRef((props, ref) => {
     stream,
     initCamera,
     stopCamera,
+    adjustCamera,
   ])
 
   const containerClasses = classNames(

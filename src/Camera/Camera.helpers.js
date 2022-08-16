@@ -107,15 +107,11 @@ export const stopCameraStream = (stream) => {
   })
 }
 
-export const getNextCameraDeviceId = ({
+export const getFacingModeCameras = ({
   cameras,
-  cameraCapabilities,
   facingMode
 }) => {
-  const { deviceId: currDeviceId } = cameraCapabilities
-  if (!currDeviceId) return
-
-  const filteredCameras = _filter(
+  return _filter(
     cameras,
     (camera) => {
       if (!camera.getCapabilities) return true
@@ -123,19 +119,27 @@ export const getNextCameraDeviceId = ({
       return _includes(cameraFacingMode, facingMode)
     },
   )
+}
+
+export const getNextCameraDeviceId = ({
+  cameras,
+  cameraCapabilities,
+}) => {
+  const { deviceId: currDeviceId } = cameraCapabilities
+  if (!currDeviceId) return
 
   const currCameraIndex = _findIndex(
-    filteredCameras,
+    cameras,
     ({ deviceId }) => _isEqual(deviceId, currDeviceId)
   )
   if (currCameraIndex < 0) return
 
   let nextCameraIndex = currCameraIndex + 1
-  if (nextCameraIndex > _size(filteredCameras) - 1) {
+  if (nextCameraIndex > _size(cameras) - 1) {
     nextCameraIndex = 0
   }
 
-  const { deviceId: nextDeviceId } = _get(filteredCameras, nextCameraIndex, {})
+  const { deviceId: nextDeviceId } = _get(cameras, nextCameraIndex, {})
   if (_isEqual(nextDeviceId, currDeviceId) || !nextDeviceId) return
 
   return nextDeviceId
@@ -150,14 +154,11 @@ export const checkBestQualityCamera = ({
   const {
     facingMode: cameraFacingMode = [],
     focusMode: cameraFocusMode = [],
-    focusDistance: cameraFocusDistance = {}
   } = cameraCapabilities
-  const { max: maxFocusDistance = 0 } = cameraFocusDistance
 
   return (
     _includes(cameraFacingMode, facingMode) &&
-    _includes(cameraFocusMode, CAMERA_FOCUS_MODE.CONTINUOUS) &&
-    maxFocusDistance > 1
+    _includes(cameraFocusMode, CAMERA_FOCUS_MODE.CONTINUOUS)
   )
 }
 
