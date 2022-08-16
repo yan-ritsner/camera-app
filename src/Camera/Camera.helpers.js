@@ -13,6 +13,7 @@ import {
   CAMERA_FILTERS,
   CAMERA_RECT_RATIO,
   CAMERA_OVERLAY_SHAPE,
+  CAMERA_FOCUS_MODE,
 } from './Camera.constants'
 
 export const initCameraStream = async ({
@@ -126,6 +127,32 @@ export const switchCameraStream = (cameras, cameraCapabilities, facingMode) => {
   if (_isEqual(nextDeviceId, currDeviceId) || !nextDeviceId) return
 
   return nextDeviceId
+}
+
+export const adjustCameraStream = (
+  cameras,
+  cameraCapabilities,
+  facingMode,
+  numberOfCameras,
+  switchedCameras
+) => {
+  if (_isEmpty(cameraCapabilities)) return
+  const {
+    facingMode: cameraFacingMode = [],
+    focusMode: cameraFocusMode = [],
+    focusDistanec: cameraFocusDistance = {}
+  } = cameraCapabilities
+  const { max: maxFocusDistance = 0 } = cameraFocusDistance
+  if ((
+    !_includes(cameraFacingMode, facingMode) ||
+    !_includes(cameraFocusMode, CAMERA_FOCUS_MODE.CONTINUOUS) ||
+    maxFocusDistance < 1
+  ) && numberOfCameras > 1 && switchedCameras < numberOfCameras
+  ) {
+    switchCameraStream(cameras, cameraCapabilities, facingMode)
+    return true
+  }
+  return false
 }
 
 export const takeCameraPhoto = ({
