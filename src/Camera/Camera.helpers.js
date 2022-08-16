@@ -16,14 +16,26 @@ import {
   CAMERA_FOCUS_MODE,
 } from './Camera.constants'
 
+export const getCameras = async (setCameras) => {
+  const mediaDevices = navigator.mediaDevices
+  if (!mediaDevices || !mediaDevices.enumerateDevices) {
+    return
+  }
+
+  const allDevices = await mediaDevices.enumerateDevices()
+  const videoDevices = _filter(
+    allDevices,
+    device => _isEqual(device.kind, 'videoinput')
+  )
+  setCameras(videoDevices)
+}
+
 export const initCameraStream = async ({
   facingMode,
   width,
   height,
   deviceId,
   setStream,
-  setCameras,
-  setNumberOfCameras,
   setCameraCapabilities,
   setNotSupported,
   setPermissionDenied,
@@ -52,8 +64,6 @@ export const initCameraStream = async ({
       handleSuccess(
         stream,
         setStream,
-        setCameras,
-        setNumberOfCameras,
         setCameraCapabilities
       )
     }
@@ -76,8 +86,6 @@ export const initCameraStream = async ({
         handleSuccess(
           stream,
           setStream,
-          setCameras,
-          setNumberOfCameras,
           setCameraCapabilities
         )
       },
@@ -99,7 +107,11 @@ export const stopCameraStream = (stream) => {
   })
 }
 
-export const switchCameraStream = (cameras, cameraCapabilities, facingMode) => {
+export const getNextCameraDeviceId = ({
+  cameras,
+  cameraCapabilities,
+  facingMode
+}) => {
   const { deviceId: currDeviceId } = cameraCapabilities
   if (!currDeviceId) return
 
@@ -129,30 +141,24 @@ export const switchCameraStream = (cameras, cameraCapabilities, facingMode) => {
   return nextDeviceId
 }
 
-export const adjustCameraStream = (
-  cameras,
+export const checkBestQualityCamera = ({
   cameraCapabilities,
   facingMode,
-  numberOfCameras,
-  switchedCameras
-) => {
-  if (_isEmpty(cameraCapabilities)) return
+}) => {
+  if (_isEmpty(cameraCapabilities)) return true
+
   const {
     facingMode: cameraFacingMode = [],
     focusMode: cameraFocusMode = [],
-    focusDistanec: cameraFocusDistance = {}
+    focusDistance: cameraFocusDistance = {}
   } = cameraCapabilities
   const { max: maxFocusDistance = 0 } = cameraFocusDistance
-  if ((
-    !_includes(cameraFacingMode, facingMode) ||
-    !_includes(cameraFocusMode, CAMERA_FOCUS_MODE.CONTINUOUS) ||
-    maxFocusDistance < 1
-  ) && numberOfCameras > 1 && switchedCameras < numberOfCameras
-  ) {
-    switchCameraStream(cameras, cameraCapabilities, facingMode)
-    return true
-  }
-  return false
+
+  return (
+    _includes(cameraFacingMode, facingMode) &&
+    _includes(cameraFocusMode, CAMERA_FOCUS_MODE.CONTINUOUS) &&
+    maxFocusDistance > 1
+  )
 }
 
 export const takeCameraPhoto = ({
@@ -210,10 +216,10 @@ export const takeCameraPhoto = ({
   context.drawImage(player, sX, sY, sW, sH, 0, 0, sW, sH)
 
   if (filter && !_isEqual(filter, CAMERA_FILTERS.NONE)) {
-    const sourceImageData = context.getImageData(0, 0, sW, sH)
-    const blankOutputImageData = context.createImageData(sW, sH)
-    const outputImageData = applyCameraFilter(sourceImageData, blankOutputImageData, filter)
-    context.putImageData(outputImageData, 0, 0)
+    const sourceData = context.getImageData(0, 0, sW, sH)
+    const blankData = context.createImageData(sW, sH)
+    const outputData = applyCameraFilter(sourceData, blankData, filter)
+    context.putImageData(outputData, 0, 0)
   }
 
   const imgDataUrl = canvas.toDataURL(format, quality)
@@ -471,15 +477,9 @@ const applyConvolution = (
   return outputImageData
 }
 
-const handleSuccess = async (stream, setStream, setCameras, setNumberOfCameras, setCameraCapabilities) => {
-  const allDevices = await navigator.mediaDevices.enumerateDevices()
-  const videoDevices = _filter(allDevices, device => _isEqual(device.kind, 'videoinput'))
-  const capabilities = getCameraCapabilities(stream)
-
+const handleSuccess = async (stream, setStream, setCameraCapabilities) => {
   // printCameraSettings(stream)
-
-  setCameras(videoDevices)
-  setNumberOfCameras(_size(videoDevices))
+  const capabilities = getCameraCapabilities(stream)
   setCameraCapabilities(capabilities)
   setStream(stream)
 }

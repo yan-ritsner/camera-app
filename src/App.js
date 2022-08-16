@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from "react"
 import _has from 'lodash/has'
+import _size from 'lodash/size'
 
 import { Camera } from "./Camera"
 import {
@@ -14,7 +15,7 @@ import './App.css'
 
 
 const App = () => {
-  const [numberOfCameras, setNumberOfCameras] = useState(0)
+  const [cameras, setCameras] = useState([])
   const [image, setImage] = useState(null)
   const [showImage, setShowImage] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -138,7 +139,7 @@ const App = () => {
           ref={camera}
           facingMode={facingMode}
           aspectRatio={CAMERA_ASPECT_RATIO.COVER}
-          numberOfCamerasCallback={setNumberOfCameras}
+          camerasCallback={setCameras}
           cameraCapabilitiesCallback={setCameraCapabilities}
           filter={filter}
           overlayShapeType={overlayShape}
@@ -157,7 +158,7 @@ const App = () => {
         />
         <button
           className='camera-button camera-change-facing-button'
-          disabled={numberOfCameras <= 1}
+          disabled={_size(cameras) <= 1}
           onClick={switchCamera}
         />
       </div>

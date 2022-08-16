@@ -8,6 +8,7 @@ import React, {
 } from 'react'
 import classNames from 'classnames'
 import _isEqual from 'lodash/isEqual'
+import _size from 'lodash/size'
 
 import {
   CAMERA_ASPECT_RATIO,
@@ -23,12 +24,13 @@ import {
 import {
   initCameraStream,
   stopCameraStream,
-  switchCameraStream,
+  getNextCameraDeviceId,
+  checkBestQualityCamera,
   takeCameraPhoto,
   setCameraSettings,
   getOverlayShapeProps,
   copySettingsToClipboard,
-  adjustCameraStream,
+  getCameras,
 } from './Camera.helpers'
 import './Camera.css'
 import CameraOverlay from './Camera.Overlay'
@@ -55,7 +57,6 @@ export const Camera = forwardRef((props, ref) => {
     primaryButtonText = '',
     secondaryButtonText = '',
     camerasCallback = () => { },
-    numberOfCamerasCallback = () => { },
     cameraCapabilitiesCallback = () => { },
     onTakePhoto = () => { },
     onPrimaryButtonClick = () => { },
@@ -70,9 +71,8 @@ export const Camera = forwardRef((props, ref) => {
   const [deviceId, setDeviceId] = useState(null)
   const [cameraState, setCameraState] = useState()
   const [cameras, setCameras] = useState([])
-  const [numberOfCameras, setNumberOfCameras] = useState(0)
-  const [switchedCameras, setSwitchedCameras] = useState(0)
   const [cameraCapabilities, setCameraCapabilities] = useState({})
+  const [switchedCameras, setSwitchedCameras] = useState(0)
   const [notSupported, setNotSupported] = useState(false)
   const [permissionDenied, setPermissionDenied] = useState(false)
   const [isFlashing, setIsFlashing] = useState(false)
@@ -96,7 +96,7 @@ export const Camera = forwardRef((props, ref) => {
   const takePhoto = () => {
     if (notSupported ||
       permissionDenied ||
-      numberOfCameras < 1 ||
+      _size(cameras) < 1 ||
       !canvas.current
     ) {
       return
@@ -132,7 +132,6 @@ export const Camera = forwardRef((props, ref) => {
       deviceId,
       setStream,
       setCameras,
-      setNumberOfCameras,
       setCameraCapabilities,
       setNotSupported,
       setPermissionDenied,
@@ -144,35 +143,38 @@ export const Camera = forwardRef((props, ref) => {
     setStream(null)
   }, [stream])
 
-  const switchCamera = () => {
-    const nextDeviceId = switchCameraStream(
+  const switchCamera = useCallback(() => {
+    const nextDeviceId = getNextCameraDeviceId({
       cameras,
       cameraCapabilities,
       facingMode
-    )
+    })
     if (nextDeviceId) {
       setDeviceId(nextDeviceId)
       setCameraState(CAMERA_STATE.RESTART)
     }
-  }
+  }, [cameras, cameraCapabilities, facingMode])
 
-  const adjustCamera = () => {
-    if (adjustCameraStream(
-      cameras,
+  const adjustCamera = useCallback(() => {
+    if (checkBestQualityCamera({
       cameraCapabilities,
-      facingMode,
-      numberOfCameras,
-      switchedCameras
-    )) {
+      facingMode
+    })) {
+      return
+    }
+    const allCameras = _size(cameras)
+    if (allCameras > 1 && switchedCameras < allCameras) {
+      switchCamera()
       setSwitchedCameras(value => value + 1)
     }
-  }
+  }, [cameras, cameraCapabilities, facingMode, switchedCameras, switchCamera])
 
   useImperativeHandle(ref, () => ({
     takePhoto,
     setSettings,
     copySettings,
     switchCamera,
+    adjustCamera,
   }))
 
   useEffect(() => {
@@ -180,12 +182,20 @@ export const Camera = forwardRef((props, ref) => {
   }, [cameras, camerasCallback])
 
   useEffect(() => {
-    numberOfCamerasCallback(numberOfCameras)
-  }, [numberOfCameras, numberOfCamerasCallback])
-
-  useEffect(() => {
     cameraCapabilitiesCallback(cameraCapabilities)
   }, [cameraCapabilities, cameraCapabilitiesCallback])
+
+  useEffect(() => {
+    if (player && player.current) {
+      player.current.srcObject = stream
+    }
+  }, [stream])
+
+  useEffect(() => {
+    getCameras(setCameras)
+    setCameraState(CAMERA_STATE.START)
+    return () => setCameraState(CAMERA_STATE.STOP)
+  }, [])
 
   useEffect(() => {
     setDeviceId(null)
@@ -197,17 +207,6 @@ export const Camera = forwardRef((props, ref) => {
   }, [facingMode])
 
   useEffect(() => {
-    if (player && player.current) {
-      player.current.srcObject = stream
-    }
-  }, [stream])
-
-  useEffect(() => {
-    setCameraState(CAMERA_STATE.START)
-    return () => setCameraState(CAMERA_STATE.STOP)
-  }, [])
-
-  useEffect(() => {
     switch (cameraState) {
       case CAMERA_STATE.START:
         console.log("START")
@@ -216,11 +215,13 @@ export const Camera = forwardRef((props, ref) => {
         break;
       case CAMERA_STATE.STARTING:
         if (stream) {
-          console.log("STARTED")
           setCameraState(CAMERA_STATE.STARTED)
         } else {
           console.log("STARTING")
         }
+        break;
+      case CAMERA_STATE.STARTED:
+        console.log("STARTED")
         break;
       case CAMERA_STATE.RESTART:
         console.log("RESTART")
