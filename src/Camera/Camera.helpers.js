@@ -41,6 +41,12 @@ export const initCameraStream = async ({
   setPermissionDenied,
 }) => {
   console.log('INIT')
+
+  if (!window.isSecureContext) {
+    setNotSupported(true)
+    return
+  }
+
   const deviceConstraints = deviceId ? {
     deviceId: {
       exact: deviceId
