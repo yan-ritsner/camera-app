@@ -265,7 +265,6 @@ export const printCameraSettings = (stream) => {
   console.log(settings)
 }
 
-
 export const copySettingsToClipboard = (stream) => {
   const track = getCameraTrack(stream)
   if (!track) return
