@@ -68,6 +68,7 @@ export const Camera = forwardRef((props, ref) => {
   const canvas = useRef(null)
   const container = useRef(null)
 
+  const isMounted = useRef(false)
   const [stream, setStream] = useState(null)
   const [deviceId, setDeviceId] = useState(null)
   const [cameraState, setCameraState] = useState()
@@ -136,6 +137,7 @@ export const Camera = forwardRef((props, ref) => {
       setCameraCapabilities,
       setNotSupported,
       setPermissionDenied,
+      isCanceled: () => !isMounted.current,
     })
   }, [facingMode, width, height, deviceId])
 
@@ -144,20 +146,26 @@ export const Camera = forwardRef((props, ref) => {
     setStream(null)
   }, [stream])
 
-  const switchCamera = useCallback(() => {
-    const facingModeCamera = getFacingModeCameras({
-      cameras,
-      facingMode
-    })
-    const nextDeviceId = getNextCameraDeviceId({
-      cameras: facingModeCamera,
-      cameraCapabilities,
-      facingMode
-    })
+  const switchCamera = useCallback((deviceId) => {
+    let nextDeviceId = deviceId
+
+    if (!nextDeviceId) {
+      const facingModeCameras = getFacingModeCameras({
+        cameras,
+        facingMode,
+      })
+      nextDeviceId = getNextCameraDeviceId({
+        cameras: facingModeCameras,
+        cameraCapabilities,
+        facingMode,
+      })
+    }
+
     if (nextDeviceId) {
       setDeviceId(nextDeviceId)
       setCameraState(CAMERA_STATE.RESTART)
     }
+    return nextDeviceId
   }, [cameras, cameraCapabilities, facingMode])
 
   const adjustCamera = useCallback(() => {
@@ -204,12 +212,24 @@ export const Camera = forwardRef((props, ref) => {
     if (player && player.current) {
       player.current.srcObject = stream
     }
+
+    return () => {
+      stopCameraStream(stream)
+    }
   }, [stream])
 
   useEffect(() => {
-    getCameras(setCameras)
+    isMounted.current = true
+
+    getCameras({
+      setCameras,
+      isCanceled: () => !isMounted.current,
+    })
     setCameraState(CAMERA_STATE.START)
-    return () => setCameraState(CAMERA_STATE.STOP)
+
+    return () => {
+      isMounted.current = false
+    }
   }, [])
 
   useEffect(() => {

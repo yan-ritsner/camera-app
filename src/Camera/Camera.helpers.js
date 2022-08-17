@@ -16,7 +16,10 @@ import {
   CAMERA_FOCUS_MODE,
 } from './Camera.constants'
 
-export const getCameras = async (setCameras) => {
+export const getCameras = async ({
+  setCameras,
+  isCanceled = () => false,
+}) => {
   const mediaDevices = navigator.mediaDevices
   if (!mediaDevices || !mediaDevices.enumerateDevices) {
     return
@@ -25,9 +28,11 @@ export const getCameras = async (setCameras) => {
   const allDevices = await mediaDevices.enumerateDevices()
   const videoDevices = _filter(
     allDevices,
-    device => _isEqual(device.kind, 'videoinput')
+    device => _isEqual(device.kind, 'videoinput'),
   )
-  setCameras(videoDevices)
+  if (!isCanceled()) {
+    setCameras(videoDevices)
+  }
 }
 
 export const initCameraStream = async ({
@@ -39,11 +44,14 @@ export const initCameraStream = async ({
   setCameraCapabilities,
   setNotSupported,
   setPermissionDenied,
+  isCanceled = () => false,
 }) => {
   console.log('INIT')
 
   if (!window.isSecureContext) {
-    setNotSupported(true)
+    if (!isCanceled()) {
+      setNotSupported(true)
+    }
     return
   }
 
@@ -67,14 +75,13 @@ export const initCameraStream = async ({
   if (mediaDevices && mediaDevices.getUserMedia) {
     try {
       const stream = await mediaDevices.getUserMedia(constraints)
-      handleSuccess(
-        stream,
-        setStream,
-        setCameraCapabilities
-      )
-    }
-    catch (err) {
-      handleError(err, setNotSupported, setPermissionDenied)
+      if (!isCanceled()) {
+        handleSuccess(stream, setStream, setCameraCapabilities)
+      }
+    } catch (err) {
+      if (!isCanceled()) {
+        handleError(err, setNotSupported, setPermissionDenied)
+      }
     }
     return
   }
@@ -89,17 +96,17 @@ export const initCameraStream = async ({
     getUserMedia(
       constraints,
       stream => {
-        handleSuccess(
-          stream,
-          setStream,
-          setCameraCapabilities
-        )
+        if (!isCanceled()) {
+          handleSuccess(stream, setStream, setCameraCapabilities)
+        }
       },
       err => {
-        handleError(err, setNotSupported, setPermissionDenied)
+        if (!isCanceled()) {
+          handleError(err, setNotSupported, setPermissionDenied)
+        }
       },
     )
-  } else {
+  } else if (!isCanceled()) {
     setNotSupported(true)
   }
 }
