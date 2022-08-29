@@ -30,7 +30,8 @@ const App = () => {
   }
 
   const onTakePhoto = (photo) => {
-    setImage(photo)
+    const photoUrl = URL.createObjectURL(photo)
+    setImage(photoUrl)
   }
   const onRetakePhoto = () => {
     setImage('')

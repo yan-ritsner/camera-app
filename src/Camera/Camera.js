@@ -52,6 +52,7 @@ export const Camera = forwardRef((props, ref) => {
     title = '',
     subtitle = '',
     image = '',
+    filename = '',
     shutterButtonVisible = false,
     primaryButtonVisible = false,
     secondaryButtonVisible = false,
@@ -104,18 +105,18 @@ export const Camera = forwardRef((props, ref) => {
       return
     }
     setIsFlashing(true)
-    const photo = takeCameraPhoto({
+    takeCameraPhoto({
       player: player.current,
       container: container.current,
       canvas: canvas.current,
+      setPhoto: onTakePhoto,
+      name: filename,
       mirorred: isUserFacing,
       dimensions: overlayShapeProps,
       format,
       quality,
       filter,
     })
-    onTakePhoto(photo)
-    return photo
   }
 
   const setSettings = (settings) => {
@@ -336,7 +337,7 @@ export const Camera = forwardRef((props, ref) => {
             className='camera-image'
             style={imageStyle}
           >
-            <a href={image} download="image.png" id="embedImage"
+            <a href={image} download="image.jpg" id="embedImage"
               style={{
                 position: 'absolute',
                 top: '50%',

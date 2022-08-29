@@ -6,6 +6,7 @@ import _isEmpty from 'lodash/isEmpty'
 import _includes from 'lodash/includes'
 import _findIndex from 'lodash/findIndex'
 import _get from 'lodash/get'
+import piexif from 'piexifjs'
 
 import {
   CAMERA_DEFAULT_WIDTH,
@@ -179,65 +180,88 @@ export const takeCameraPhoto = ({
   player,
   container,
   canvas,
+  setPhoto,
+  name,
   mirorred,
   dimensions,
   format,
   quality,
   filter,
 }) => {
-  if (!player || !container || !canvas) return
-
-  const playerWidth = player.videoWidth || CAMERA_DEFAULT_WIDTH
-  const playerHeight = player.videoHeight || CAMERA_DEFAULT_HEIGHT
-  const playerAR = playerWidth / playerHeight
-
-  const canvasWidth = container.offsetWidth || CAMERA_DEFAULT_WIDTH
-  const canvasHeight = container.offsetHeight || CAMERA_DEFAULT_HEIGHT
-  const canvasAR = canvasWidth / canvasHeight
-
-  let sX, sY, sW, sH
-
-  if (playerAR > canvasAR) {
-    sH = playerHeight
-    sW = playerHeight * canvasAR
-    sX = (playerWidth - sW) / 2
-    sY = 0
-  } else {
-    sW = playerWidth
-    sH = playerWidth / canvasAR
-    sX = 0
-    sY = (playerHeight - sH) / 2
+  if (!player || !container || !canvas) {
+    setPhoto(null)
+    return
   }
 
-  if (!_isEmpty(dimensions)) {
-    const { x, y, width, height } = dimensions
-    sX = sX + (x / canvasWidth * sW)
-    sY = sY + (y / canvasHeight * sH)
-    sW = (width / canvasWidth * sW)
-    sH = (height / canvasHeight * sH)
+  try {
+    const playerWidth = player.videoWidth || CAMERA_DEFAULT_WIDTH
+    const playerHeight = player.videoHeight || CAMERA_DEFAULT_HEIGHT
+    const playerAR = playerWidth / playerHeight
+
+    const canvasWidth = container.offsetWidth || CAMERA_DEFAULT_WIDTH
+    const canvasHeight = container.offsetHeight || CAMERA_DEFAULT_HEIGHT
+    const canvasAR = canvasWidth / canvasHeight
+
+    let sX, sY, sW, sH
+
+    if (playerAR > canvasAR) {
+      sH = playerHeight
+      sW = playerHeight * canvasAR
+      sX = (playerWidth - sW) / 2
+      sY = 0
+    } else {
+      sW = playerWidth
+      sH = playerWidth / canvasAR
+      sX = 0
+      sY = (playerHeight - sH) / 2
+    }
+
+    if (!_isEmpty(dimensions)) {
+      const { x, y, width, height } = dimensions
+      sX = sX + (x / canvasWidth * sW)
+      sY = sY + (y / canvasHeight * sH)
+      sW = (width / canvasWidth * sW)
+      sH = (height / canvasHeight * sH)
+    }
+
+    canvas.width = sW
+    canvas.height = sH
+
+    const context = canvas.getContext('2d')
+
+    if (mirorred) {
+      context.translate(canvas.width, 0);
+      context.scale(-1, 1);
+    }
+
+    context.drawImage(player, sX, sY, sW, sH, 0, 0, sW, sH)
+
+    if (filter && !_isEqual(filter, CAMERA_FILTERS.NONE)) {
+      const sourceData = context.getImageData(0, 0, sW, sH)
+      const blankData = context.createImageData(sW, sH)
+      const outputData = applyCameraFilter(sourceData, blankData, filter)
+      context.putImageData(outputData, 0, 0)
+    }
+
+    const fileType = `image/${format}`
+    const fileName = name ? `${name}.${format}` : ''
+    const imgDataUrl = canvas.toDataURL(fileType, quality)
+    const imgWithMetaUrl = addImageMetadata(imgDataUrl)
+    const imgData = dataURLtoBlob(imgWithMetaUrl)
+
+    const file = new File(
+      [imgData],
+      fileName,
+      { type: fileType },
+    )
+    setPhoto(file)
+
+    return imgDataUrl
+
+  } catch (ex) {
+    console.log(ex)
+    setPhoto(null)
   }
-
-  canvas.width = sW
-  canvas.height = sH
-
-  const context = canvas.getContext('2d')
-
-  if (mirorred) {
-    context.translate(canvas.width, 0);
-    context.scale(-1, 1);
-  }
-
-  context.drawImage(player, sX, sY, sW, sH, 0, 0, sW, sH)
-
-  if (filter && !_isEqual(filter, CAMERA_FILTERS.NONE)) {
-    const sourceData = context.getImageData(0, 0, sW, sH)
-    const blankData = context.createImageData(sW, sH)
-    const outputData = applyCameraFilter(sourceData, blankData, filter)
-    context.putImageData(outputData, 0, 0)
-  }
-
-  const imgDataUrl = canvas.toDataURL(format, quality)
-  return imgDataUrl
 }
 
 export const getCameraTrack = (stream) => {
@@ -506,4 +530,42 @@ const handleError = (error, setNotSupported, setPermissionDenied) => {
   } else {
     setNotSupported(true)
   }
+}
+
+const addImageMetadata = (imgDataUrl) => {
+  const zeroth = {};
+  const exif = {};
+  const gps = {};
+
+  zeroth[piexif.ImageIFD.Make] = "Make";
+  zeroth[piexif.ImageIFD.XResolution] = [777, 1];
+  zeroth[piexif.ImageIFD.YResolution] = [777, 1];
+  zeroth[piexif.ImageIFD.Software] = "Piexifjs";
+
+  exif[piexif.ExifIFD.DateTimeOriginal] = "2010:10:10 10:10:10";
+  exif[piexif.ExifIFD.LensMake] = "LensMake";
+  exif[piexif.ExifIFD.Sharpness] = 777;
+  exif[piexif.ExifIFD.LensSpecification] = [[1, 1], [1, 1], [1, 1], [1, 1]];
+
+  gps[piexif.GPSIFD.GPSVersionID] = [7, 7, 7, 7];
+  gps[piexif.GPSIFD.GPSDateStamp] = "1999:99:99 99:99:99";
+
+  const exifObj = { "0th": zeroth, "Exif": exif, "GPS": gps };
+  const exifStr = piexif.dump(exifObj);
+
+  return piexif.insert(exifStr, imgDataUrl)
+}
+
+const dataURLtoBlob = (dataUrl) => {
+  const arr = dataUrl.split(',')
+  const mime = arr[0].match(/:(.*?);/)[1]
+  const bstr = window.atob(arr[1])
+  let n = bstr.length
+  const u8arr = new Uint8Array(n)
+
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+
+  return new Blob([u8arr], { type: mime });
 }
