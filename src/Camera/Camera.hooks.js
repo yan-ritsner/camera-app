@@ -39,3 +39,31 @@ export const useElementSize = (elementRef) => {
 
   return size
 }
+
+export const useGeolocation = () => {
+  const [geoPosition, setGeoPosition] = useState()
+  const [isGeolocating, setIsGeolocating] = useState(false)
+
+  useEffect(() => {
+    const { geolocation } = navigator
+    if (!geolocation) return
+
+    setIsGeolocating(true)
+    geolocation.getCurrentPosition(
+      (position) => {
+        setGeoPosition(position)
+        setIsGeolocating(false)
+      },
+      () => {
+        setIsGeolocating(false)
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 5000,
+        maximumAge: Infinity
+      }
+    )
+  }, [setGeoPosition, setIsGeolocating])
+
+  return [geoPosition, isGeolocating]
+}

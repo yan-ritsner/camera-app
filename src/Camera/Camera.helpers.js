@@ -192,6 +192,7 @@ export const takeCameraPhoto = ({
   format,
   quality,
   filter,
+  geoPosition
 }) => {
   if (!player || !container || !canvas) {
     setPhoto(null)
@@ -251,27 +252,10 @@ export const takeCameraPhoto = ({
     const fileType = `image/${format}`
     const fileName = name ? `${name}.${format}` : ''
     const imgDataUrl = canvas.toDataURL(fileType, quality)
+    const imgMetaUrl = addImageMetadata(imgDataUrl, geoPosition)
+    const imgFile = getImageFile(imgMetaUrl, fileName, fileType)
 
-    const setPhotoWitMetadata = (position) => {
-      const imgMetaUrl = addImageMetadata(imgDataUrl, position)
-      const imgFile = getImageFile(imgMetaUrl, fileName, fileType)
-      setPhoto(imgFile)
-    }
-
-    const { geolocation } = navigator
-    if (geolocation) {
-      geolocation.getCurrentPosition(
-        (position) => setPhotoWitMetadata(position),
-        () => setPhotoWitMetadata(),
-        {
-          enableHighAccuracy: false,
-          timeout: 5000,
-          maximumAge: Infinity
-        }
-      );
-    } else {
-      setPhotoWitMetadata()
-    }
+    setPhoto(imgFile)
   } catch (ex) {
     console.log(ex)
     setPhoto(null)
@@ -546,7 +530,7 @@ const handleError = (error, setNotSupported, setPermissionDenied) => {
   }
 }
 
-const addImageMetadata = (imgDataUrl, position) => {
+const addImageMetadata = (imgDataUrl, geoPosition) => {
   const zeroth = {}
   const exif = {}
   const gps = {}
@@ -561,8 +545,8 @@ const addImageMetadata = (imgDataUrl, position) => {
   exif[piexif.ExifIFD.Sharpness] = 777
   exif[piexif.ExifIFD.LensSpecification] = [[1, 1], [1, 1], [1, 1], [1, 1]]
 
-  if (position) {
-    const { coords } = position
+  if (geoPosition) {
+    const { coords } = geoPosition
     const { latitude, longitude } = coords
     gps[piexif.GPSIFD.GPSLatitudeRef] = latitude < 0 ? 'S' : 'N';
     gps[piexif.GPSIFD.GPSLatitude] = piexif.GPSHelper.degToDmsRational(latitude);
@@ -575,16 +559,6 @@ const addImageMetadata = (imgDataUrl, position) => {
 
   const imgMetaUrl = piexif.insert(exifStr, imgDataUrl)
   return imgMetaUrl
-}
-
-const getImageFile = (imgDataUrl, fileName, fileType) => {
-  const imgData = dataURLtoBlob(imgDataUrl)
-  const imgFile = new File(
-    [imgData],
-    fileName,
-    { type: fileType },
-  )
-  return imgFile
 }
 
 const dataURLtoBlob = (dataUrl) => {
@@ -600,4 +574,14 @@ const dataURLtoBlob = (dataUrl) => {
   }
 
   return new Blob([barr], { type: mime });
+}
+
+const getImageFile = (imgDataUrl, fileName, fileType) => {
+  const imgData = dataURLtoBlob(imgDataUrl)
+  const imgFile = new File(
+    [imgData],
+    fileName,
+    { type: fileType },
+  )
+  return imgFile
 }

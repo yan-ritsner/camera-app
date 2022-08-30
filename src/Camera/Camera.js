@@ -35,7 +35,7 @@ import {
 } from './Camera.helpers'
 import './Camera.css'
 import CameraOverlay from './Camera.Overlay'
-import { useElementSize } from './Camera.hooks'
+import { useElementSize, useGeolocation } from './Camera.hooks'
 
 export const Camera = forwardRef((props, ref) => {
   const {
@@ -79,6 +79,7 @@ export const Camera = forwardRef((props, ref) => {
   const [notSupported, setNotSupported] = useState(false)
   const [permissionDenied, setPermissionDenied] = useState(false)
   const [isFlashing, setIsFlashing] = useState(false)
+  const [geoPosition] = useGeolocation()
 
   const isCoverRatio = _isEqual(aspectRatio, CAMERA_ASPECT_RATIO.COVER)
   const isUserFacing = _isEqual(facingMode, CAMERA_FACING_MODE.USER)
@@ -116,6 +117,7 @@ export const Camera = forwardRef((props, ref) => {
       format,
       quality,
       filter,
+      geoPosition,
     })
   }
 
