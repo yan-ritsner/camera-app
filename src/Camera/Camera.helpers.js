@@ -252,18 +252,19 @@ export const takeCameraPhoto = ({
     const fileType = `image/${format}`
     const fileName = name ? `${name}.${format}` : ''
     const imgDataUrl = canvas.toDataURL(fileType, quality)
-    const imgWithMetaUrl = addImageMetadata(imgDataUrl)
 
-    // addImageMetadata(imgDataUrl, (imgWithMetaUrl) => {
-    const imgData = dataURLtoBlob(imgWithMetaUrl)
-    const file = new File(
-      [imgData],
-      fileName,
-      { type: fileType },
-    )
-    setPhoto(file)
-    // })
+    const setImage = (position) => {
+      const imgMetaUrl = addImageMetadata(imgDataUrl, position)
+      const imgFile = getImageFile(imgMetaUrl, fileName, fileType)
+      setPhoto(imgFile)
+    }
 
+    const { geolocation } = navigator
+    if (geolocation) {
+      geolocation.getCurrentPosition(setImage);
+    } else {
+      setImage()
+    }
   } catch (ex) {
     console.log(ex)
     setPhoto(null)
@@ -538,7 +539,7 @@ const handleError = (error, setNotSupported, setPermissionDenied) => {
   }
 }
 
-const addImageMetadata = (imgDataUrl, onMetaDataAdded) => {
+const addImageMetadata = (imgDataUrl, position) => {
   // const addMetaData = (imgDataUrl, position) => {
   const zeroth = {}
   const exif = {}
@@ -554,11 +555,19 @@ const addImageMetadata = (imgDataUrl, onMetaDataAdded) => {
   exif[piexif.ExifIFD.Sharpness] = 777
   exif[piexif.ExifIFD.LensSpecification] = [[1, 1], [1, 1], [1, 1], [1, 1]]
 
-  gps[piexif.GPSIFD.GPSVersionID] = [7, 7, 7, 7]
-  gps[piexif.GPSIFD.GPSDateStamp] = "2010:10:10 10:10:10"
-  // moment(
-  //   new Date(position.timestamp)
-  // ).format('YYYY:MM:DD hh:mm:ss')
+  if (position) {
+    const { latitude, longitude } = position
+    gps[piexif.GPSIFD.GPSVersionID] = [7, 7, 7, 7]
+    gps[piexif.GPSIFD.GPSDateStamp] = "2010:10:10 10:10:10"
+    gps[piexif.GPSIFD.GPSLatitudeRef] = latitude < 0 ? 'S' : 'N';
+    gps[piexif.GPSIFD.GPSLatitude] = piexif.GPSHelper.degToDmsRational(latitude);
+    gps[piexif.GPSIFD.GPSLongitudeRef] = longitude < 0 ? 'W' : 'E';
+    gps[piexif.GPSIFD.GPSLongitude] = piexif.GPSHelper.degToDmsRational(longitude);
+
+    // moment(
+    //   new Date(position.timestamp)
+    // ).format('YYYY:MM:DD hh:mm:ss')
+  }
 
   const exifObj = { "0th": zeroth, "Exif": exif, "GPS": gps };
   const exifStr = piexif.dump(exifObj);
@@ -574,6 +583,16 @@ const addImageMetadata = (imgDataUrl, onMetaDataAdded) => {
   // } else {
   //   onMetaDataAdded(addMetaData(imgDataUrl))
   // }
+}
+
+const getImageFile = (imgDataUrl, fileName, fileType) => {
+  const imgData = dataURLtoBlob(imgDataUrl)
+  const imgFile = new File(
+    [imgData],
+    fileName,
+    { type: fileType },
+  )
+  return imgFile
 }
 
 const dataURLtoBlob = (dataUrl) => {
