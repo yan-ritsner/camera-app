@@ -1,3 +1,5 @@
+import piexif from 'piexifjs'
+// import moment from 'moment'
 import _filter from 'lodash/filter'
 import _isEqual from 'lodash/isEqual'
 import _size from 'lodash/size'
@@ -6,7 +8,7 @@ import _isEmpty from 'lodash/isEmpty'
 import _includes from 'lodash/includes'
 import _findIndex from 'lodash/findIndex'
 import _get from 'lodash/get'
-import piexif from 'piexifjs'
+import _split from 'lodash/split'
 
 import {
   CAMERA_DEFAULT_WIDTH,
@@ -129,7 +131,9 @@ export const getFacingModeCameras = ({
     cameras,
     (camera) => {
       if (!camera.getCapabilities) return true
-      const { facingMode: cameraFacingMode } = camera.getCapabilities()
+      const {
+        facingMode: cameraFacingMode
+      } = camera.getCapabilities()
       return _includes(cameraFacingMode, facingMode)
     },
   )
@@ -153,7 +157,9 @@ export const getNextCameraDeviceId = ({
     nextCameraIndex = 0
   }
 
-  const { deviceId: nextDeviceId } = _get(cameras, nextCameraIndex, {})
+  const {
+    deviceId: nextDeviceId
+  } = _get(cameras, nextCameraIndex, {})
   if (_isEqual(nextDeviceId, currDeviceId) || !nextDeviceId) return
 
   return nextDeviceId
@@ -247,16 +253,16 @@ export const takeCameraPhoto = ({
     const fileName = name ? `${name}.${format}` : ''
     const imgDataUrl = canvas.toDataURL(fileType, quality)
     const imgWithMetaUrl = addImageMetadata(imgDataUrl)
-    const imgData = dataURLtoBlob(imgWithMetaUrl)
 
+    // addImageMetadata(imgDataUrl, (imgWithMetaUrl) => {
+    const imgData = dataURLtoBlob(imgWithMetaUrl)
     const file = new File(
       [imgData],
       fileName,
       { type: fileType },
     )
     setPhoto(file)
-
-    return imgDataUrl
+    // })
 
   } catch (ex) {
     console.log(ex)
@@ -532,40 +538,55 @@ const handleError = (error, setNotSupported, setPermissionDenied) => {
   }
 }
 
-const addImageMetadata = (imgDataUrl) => {
-  const zeroth = {};
-  const exif = {};
-  const gps = {};
+const addImageMetadata = (imgDataUrl, onMetaDataAdded) => {
+  // const addMetaData = (imgDataUrl, position) => {
+  const zeroth = {}
+  const exif = {}
+  const gps = {}
 
-  zeroth[piexif.ImageIFD.Make] = "Make";
-  zeroth[piexif.ImageIFD.XResolution] = [777, 1];
-  zeroth[piexif.ImageIFD.YResolution] = [777, 1];
-  zeroth[piexif.ImageIFD.Software] = "Piexifjs";
+  zeroth[piexif.ImageIFD.Make] = "Make"
+  zeroth[piexif.ImageIFD.XResolution] = [777, 1]
+  zeroth[piexif.ImageIFD.YResolution] = [777, 1]
+  zeroth[piexif.ImageIFD.Software] = "Piexifjs"
 
-  exif[piexif.ExifIFD.DateTimeOriginal] = "2010:10:10 10:10:10";
-  exif[piexif.ExifIFD.LensMake] = "LensMake";
-  exif[piexif.ExifIFD.Sharpness] = 777;
-  exif[piexif.ExifIFD.LensSpecification] = [[1, 1], [1, 1], [1, 1], [1, 1]];
+  exif[piexif.ExifIFD.DateTimeOriginal] = "2010:10:10 10:10:10"
+  exif[piexif.ExifIFD.LensMake] = "LensMake"
+  exif[piexif.ExifIFD.Sharpness] = 777
+  exif[piexif.ExifIFD.LensSpecification] = [[1, 1], [1, 1], [1, 1], [1, 1]]
 
-  gps[piexif.GPSIFD.GPSVersionID] = [7, 7, 7, 7];
-  gps[piexif.GPSIFD.GPSDateStamp] = "1999:99:99 99:99:99";
+  gps[piexif.GPSIFD.GPSVersionID] = [7, 7, 7, 7]
+  gps[piexif.GPSIFD.GPSDateStamp] = "2010:10:10 10:10:10"
+  // moment(
+  //   new Date(position.timestamp)
+  // ).format('YYYY:MM:DD hh:mm:ss')
 
   const exifObj = { "0th": zeroth, "Exif": exif, "GPS": gps };
   const exifStr = piexif.dump(exifObj);
 
-  return piexif.insert(exifStr, imgDataUrl)
+  const imgWithMetaUrl = piexif.insert(exifStr, imgDataUrl)
+  return imgWithMetaUrl
+  // }
+
+  // if (navigator.geolocation) {
+  //   navigator.geolocation.getCurrentPosition((position) => {
+  //     onMetaDataAdded(addMetaData(imgDataUrl, position))
+  //   });
+  // } else {
+  //   onMetaDataAdded(addMetaData(imgDataUrl))
+  // }
 }
 
 const dataURLtoBlob = (dataUrl) => {
-  const arr = dataUrl.split(',')
-  const mime = arr[0].match(/:(.*?);/)[1]
-  const bstr = window.atob(arr[1])
-  let n = bstr.length
-  const u8arr = new Uint8Array(n)
+  const [mimePart, contentPart] = _split(dataUrl, ',')
+  const [, mime] = mimePart.match(/:(.*?);/)
 
-  while (n--) {
-    u8arr[n] = bstr.charCodeAt(n);
+  const bstr = window.atob(contentPart)
+  const size = _size(bstr)
+  const barr = new Uint8Array(size)
+
+  for (let i = 0; i < size; i++) {
+    barr[i] = bstr.charCodeAt(i);
   }
 
-  return new Blob([u8arr], { type: mime });
+  return new Blob([barr], { type: mime });
 }
