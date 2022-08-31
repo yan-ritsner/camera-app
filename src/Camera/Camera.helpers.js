@@ -1,4 +1,5 @@
 import piexif from 'piexifjs'
+import platform from 'platform'
 import _filter from 'lodash/filter'
 import _isEqual from 'lodash/isEqual'
 import _size from 'lodash/size'
@@ -532,19 +533,17 @@ const handleError = (error, setNotSupported, setPermissionDenied) => {
 
 const addImageMetadata = (imgDataUrl, geoPosition) => {
   const zeroth = {}
-  const exif = {}
   const gps = {}
 
-  zeroth[piexif.ImageIFD.Make] = "Make"
-  zeroth[piexif.ImageIFD.XResolution] = [777, 1]
-  zeroth[piexif.ImageIFD.YResolution] = [777, 1]
-  zeroth[piexif.ImageIFD.Software] = "Piexifjs"
-
-  exif[piexif.ExifIFD.DateTimeOriginal] = "2010:10:10 10:10:10"
-  exif[piexif.ExifIFD.LensMake] = "LensMake"
-  exif[piexif.ExifIFD.Sharpness] = 777
-  exif[piexif.ExifIFD.LensSpecification] = [[1, 1], [1, 1], [1, 1], [1, 1]]
-
+  if (platform.manufacturer) {
+    zeroth[piexif.ImageIFD.Make] = platform.manufacturer;
+  }
+  if (platform.product) {
+    zeroth[piexif.ImageIFD.Model] = platform.product;
+  }
+  if (platform.os) {
+    zeroth[piexif.ImageIFD.Software] = platform.os.toString();
+  }
   if (geoPosition) {
     const { coords } = geoPosition
     const { latitude, longitude } = coords
@@ -554,7 +553,7 @@ const addImageMetadata = (imgDataUrl, geoPosition) => {
     gps[piexif.GPSIFD.GPSLongitude] = piexif.GPSHelper.degToDmsRational(longitude);
   }
 
-  const exifObj = { "0th": zeroth, "Exif": exif, "GPS": gps };
+  const exifObj = { "0th": zeroth, "GPS": gps };
   const exifStr = piexif.dump(exifObj);
 
   const imgMetaUrl = piexif.insert(exifStr, imgDataUrl)
