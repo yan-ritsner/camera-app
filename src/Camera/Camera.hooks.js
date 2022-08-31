@@ -60,8 +60,8 @@ export const useGeolocation = (isCanceled) => {
 
     setIsGeolocating(true)
     geolocation.getCurrentPosition(
-      (position) => setGeoPosition(position),
-      () => setGeoPosition(),
+      (position) => onGeoPosition(position),
+      () => onGeoPosition(),
       {
         enableHighAccuracy: false,
         timeout: 5000,
