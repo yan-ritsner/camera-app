@@ -2,7 +2,9 @@ import {
   useState,
   useEffect,
   useRef,
+  useCallback,
 } from 'react'
+import _isFunction from 'lodash/isFunction'
 
 export const useElementSize = (elementRef) => {
   const [size, setSize] = useState({
@@ -40,9 +42,17 @@ export const useElementSize = (elementRef) => {
   return size
 }
 
-export const useGeolocation = () => {
+export const useGeolocation = (isCanceled) => {
   const [geoPosition, setGeoPosition] = useState()
   const [isGeolocating, setIsGeolocating] = useState(false)
+
+  const onGeoPosition = useCallback((position) => {
+    if (_isFunction(isCanceled) && isCanceled()) {
+      return
+    }
+    setGeoPosition(position)
+    setIsGeolocating(false)
+  }, [isCanceled])
 
   useEffect(() => {
     const { geolocation } = navigator
@@ -50,20 +60,15 @@ export const useGeolocation = () => {
 
     setIsGeolocating(true)
     geolocation.getCurrentPosition(
-      (position) => {
-        setGeoPosition(position)
-        setIsGeolocating(false)
-      },
-      () => {
-        setIsGeolocating(false)
-      },
+      (position) => setGeoPosition(position),
+      () => setGeoPosition(),
       {
         enableHighAccuracy: false,
         timeout: 5000,
         maximumAge: Infinity
       }
     )
-  }, [setGeoPosition, setIsGeolocating])
+  }, [onGeoPosition])
 
   return [geoPosition, isGeolocating]
 }

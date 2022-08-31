@@ -68,8 +68,8 @@ export const Camera = forwardRef((props, ref) => {
   const player = useRef(null)
   const canvas = useRef(null)
   const container = useRef(null)
-
   const isMounted = useRef(false)
+
   const [stream, setStream] = useState(null)
   const [deviceId, setDeviceId] = useState(null)
   const [cameraState, setCameraState] = useState()
@@ -79,7 +79,9 @@ export const Camera = forwardRef((props, ref) => {
   const [notSupported, setNotSupported] = useState(false)
   const [permissionDenied, setPermissionDenied] = useState(false)
   const [isFlashing, setIsFlashing] = useState(false)
-  const [geoPosition] = useGeolocation()
+
+  const isCanceled = useCallback(() => !isMounted.current, [])
+  const [geoPosition] = useGeolocation(isCanceled)
 
   const isCoverRatio = _isEqual(aspectRatio, CAMERA_ASPECT_RATIO.COVER)
   const isUserFacing = _isEqual(facingMode, CAMERA_FACING_MODE.USER)
@@ -140,9 +142,9 @@ export const Camera = forwardRef((props, ref) => {
       setCameraCapabilities,
       setNotSupported,
       setPermissionDenied,
-      isCanceled: () => !isMounted.current,
+      isCanceled,
     })
-  }, [facingMode, width, height, deviceId])
+  }, [facingMode, width, height, deviceId, isCanceled])
 
   const stopCamera = useCallback(() => {
     stopCameraStream(stream)
@@ -226,14 +228,14 @@ export const Camera = forwardRef((props, ref) => {
 
     getCameras({
       setCameras,
-      isCanceled: () => !isMounted.current,
+      isCanceled,
     })
     setCameraState(CAMERA_STATE.START)
 
     return () => {
       isMounted.current = false
     }
-  }, [])
+  }, [isCanceled])
 
   useEffect(() => {
     setDeviceId(null)
