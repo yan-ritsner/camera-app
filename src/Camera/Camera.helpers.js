@@ -532,32 +532,39 @@ const handleError = (error, setNotSupported, setPermissionDenied) => {
 }
 
 const addImageMetadata = (imgDataUrl, geoPosition) => {
-  const zeroth = {}
-  const gps = {}
+  try {
+    const zeroth = {}
+    const gps = {}
 
-  if (platform.manufacturer) {
-    zeroth[piexif.ImageIFD.Make] = platform.manufacturer;
-  }
-  if (platform.product) {
-    zeroth[piexif.ImageIFD.Model] = platform.product;
-  }
-  if (platform.os) {
-    zeroth[piexif.ImageIFD.Software] = platform.os.toString();
-  }
-  if (geoPosition) {
-    const { coords } = geoPosition
-    const { latitude, longitude } = coords
-    gps[piexif.GPSIFD.GPSLatitudeRef] = latitude < 0 ? 'S' : 'N';
-    gps[piexif.GPSIFD.GPSLatitude] = piexif.GPSHelper.degToDmsRational(latitude);
-    gps[piexif.GPSIFD.GPSLongitudeRef] = longitude < 0 ? 'W' : 'E';
-    gps[piexif.GPSIFD.GPSLongitude] = piexif.GPSHelper.degToDmsRational(longitude);
-  }
+    const { manufacturer, product, os } = platform
+    if (manufacturer) {
+      zeroth[piexif.ImageIFD.Make] = manufacturer;
+    }
+    if (product) {
+      zeroth[piexif.ImageIFD.Model] = product;
+    }
+    if (os) {
+      zeroth[piexif.ImageIFD.Software] = os.toString()
+    }
 
-  const exifObj = { "0th": zeroth, "GPS": gps };
-  const exifStr = piexif.dump(exifObj);
+    if (geoPosition) {
+      const { coords = {} } = geoPosition
+      const { latitude = 0, longitude = 0 } = coords
+      gps[piexif.GPSIFD.GPSLatitudeRef] = latitude < 0 ? 'S' : 'N';
+      gps[piexif.GPSIFD.GPSLatitude] = piexif.GPSHelper.degToDmsRational(latitude);
+      gps[piexif.GPSIFD.GPSLongitudeRef] = longitude < 0 ? 'W' : 'E';
+      gps[piexif.GPSIFD.GPSLongitude] = piexif.GPSHelper.degToDmsRational(longitude);
+    }
 
-  const imgMetaUrl = piexif.insert(exifStr, imgDataUrl)
-  return imgMetaUrl
+    const exifObj = { "0th": zeroth, "GPS": gps };
+    const exifStr = piexif.dump(exifObj);
+
+    const imgMetaUrl = piexif.insert(exifStr, imgDataUrl)
+    return imgMetaUrl
+  }
+  catch {
+    return imgDataUrl
+  }
 }
 
 const dataURLtoBlob = (dataUrl) => {
