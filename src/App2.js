@@ -10,7 +10,7 @@ import {
 
 const App = () => {
   const [image, setImage] = useState('')
-  const [facingMode, setFacingMode] = useState(CAMERA_FACING_MODE.ENVIRONMENT)
+  const [facingMode, setFacingMode] = useState(CAMERA_FACING_MODE.USER)
   const cameraRef = useRef();
 
   const toggleFacingMode = () => {
@@ -42,13 +42,15 @@ const App = () => {
     : CAMERA_OVERLAY_SHAPE.RECT
 
   return (
-    <>
+    <div>
       <Camera
         ref={cameraRef}
         image={image}
         facingMode={facingMode}
         aspectRatio={CAMERA_ASPECT_RATIO.COVER}
         filter={CAMERA_FILTERS.NONE}
+        title={"Title"}
+        subtitle={"Subtitle"}
         overlayShapeType={overlayShape}
         overlayVisible
         shutterButtonVisible
@@ -86,7 +88,7 @@ const App = () => {
         </button>
       </div>
 
-    </>
+    </div>
   )
 }
 

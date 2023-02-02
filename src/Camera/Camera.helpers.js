@@ -384,6 +384,8 @@ export const getCircleOverlayProps = ({
 export const getRectOverlayProps = ({
   width,
   height,
+  // controlsWidth,
+  // controlsHeight,
   ratio,
   borderRadius = 0,
   hmargin = 20,
@@ -398,6 +400,11 @@ export const getRectOverlayProps = ({
   if (height > width) {
     rectWidth = Math.max(width - (hmargin * 2), 0)
     rectHeight = rectWidth / ratio
+    // const overflow = rectHeight + vmargin + controlsHeight - height
+    // if (overflow < rectHeight && overflow > 0) {
+    //   rectHeight -= overflow
+    //   rectWidth = rectHeight * ratio
+    // }
     rectX = (width - rectWidth) / 2
     rectY = vmargin
     rectMargin = {
@@ -406,6 +413,11 @@ export const getRectOverlayProps = ({
   } else {
     rectHeight = Math.max(height - (hmargin * 2), 0)
     rectWidth = rectHeight * ratio
+    // const overflow = rectWidth + hmargin + controlsWidth - width
+    // if (overflow > 0) {
+    //   rectWidth -= overflow
+    //   rectHeight = rectWidth / ratio
+    // }
     rectX = vmargin
     rectY = (height - rectHeight) / 2
     rectMargin = {
@@ -429,6 +441,8 @@ export const getOverlayShapeProps = ({
   type,
   width,
   height,
+  controlsWidth,
+  controlsHeight,
 }) => {
   let overlayShapeProps
   switch (type) {
@@ -436,6 +450,8 @@ export const getOverlayShapeProps = ({
       overlayShapeProps = getRectOverlayProps({
         width,
         height,
+        controlsWidth,
+        controlsHeight,
         ratio: CAMERA_RECT_RATIO.SQUARE,
         borderRadius: '50%',
       })
@@ -444,6 +460,8 @@ export const getOverlayShapeProps = ({
       overlayShapeProps = getRectOverlayProps({
         width,
         height,
+        controlsWidth,
+        controlsHeight,
         ratio: CAMERA_RECT_RATIO.CARD,
         borderRadius: 10,
       })

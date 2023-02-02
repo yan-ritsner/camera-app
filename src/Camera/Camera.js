@@ -68,6 +68,7 @@ export const Camera = forwardRef((props, ref) => {
   const player = useRef(null)
   const canvas = useRef(null)
   const container = useRef(null)
+  const controls = useRef(null)
   const isMounted = useRef(false)
 
   const [stream, setStream] = useState(null)
@@ -91,12 +92,18 @@ export const Camera = forwardRef((props, ref) => {
     height: containerHeight
   } = useElementSize(container)
   const {
+    width: controlsWidth,
+    height: controlsHeight
+  } = useElementSize(controls)
+  const {
     overlayShapeProps = {},
     overlayShapeMargin = {}
   } = getOverlayShapeProps({
     type: overlayShapeType,
     width: containerWidth,
-    height: containerHeight
+    height: containerHeight,
+    controlsWidth,
+    controlsHeight,
   })
 
   const takePhoto = () => {
@@ -372,7 +379,7 @@ export const Camera = forwardRef((props, ref) => {
               {icon}
             </div>
           )}
-          <div className='camera-controls'>
+          <div className='camera-controls' ref={controls}>
             {title && (
               <div className='camera-title'>
                 {title}
